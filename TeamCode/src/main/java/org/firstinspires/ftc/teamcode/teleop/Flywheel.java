@@ -1,35 +1,24 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-@Configurable
 public class Flywheel {
 
     private final DcMotor shooter;
     private final Telemetry telemetry; // nullable
 
-    // --- Panels-configurable constants (public static) ---
-
+    // Constants (same as main HORS shooter)
     public static double MAX_RPM = 200.0;
-
     public static double TICKS_PER_REV = 537.6;
-
     public static double K_P = 0.0003;
-
     public static double EMA_ALPHA = 0.35; // smoothing for measured RPM
-
     public static double DEFAULT_RPM_SCALE = 0.78;
-
     public static double TARGET_RPM_CLOSE = 90.0;
-
     public static double TARGET_RPM_FAR   = 140.0;
-
-
     public static double TARGET_TOLERANCE_RPM = 10.0; // runtime tolerance for "at target" check
 
-    // --- Internal state ---
+    // Internal state
     private double currentRPM = 0.0;
     private int lastShooterPosition = 0;
     private long lastShooterTime = -1L;
@@ -57,21 +46,22 @@ public class Flywheel {
     // runtime tolerance used for "at target" detection
     private double targetToleranceRpm = TARGET_TOLERANCE_RPM;
 
+    // diagnostics
+    private int lastDeltaTicks = 0;
+    private long lastDeltaTimeMs = 0;
+
     public Flywheel(DcMotor shooterMotor, Telemetry telemetry) {
         this.shooter = shooterMotor;
         this.telemetry = telemetry;
-        this.targetRPM = TARGET_RPM_CLOSE;
+        this.targetRPM = TARGET_RPM_CLOSE; // default 90
         this.shooterOn = true;
 
         this.lastShooterPosition = shooter.getCurrentPosition();
         this.lastShooterTime = System.currentTimeMillis();
     }
 
-    /**
-     * Primary periodic update. Call from OpMode loop with current time and calibration button state.
-     */
+    /** Primary periodic update. Call from OpMode loop with current time and calibration button state. */
     public void update(long nowMs, boolean calibPressed) {
-        // Pull latest config each loop so UI changes apply live
         double maxRpmCfg = MAX_RPM;
         double ticksPerRevCfg = TICKS_PER_REV;
         double kPCfg = K_P;
@@ -86,6 +76,9 @@ public class Flywheel {
         double ticksPerSec = (deltaTicks * 1000.0) / deltaTimeMs;
         double measuredRPMRaw = (ticksPerSec / ticksPerRevCfg) * 60.0;
         double measuredRPMScaled = measuredRPMRaw * rpmScale;
+
+        lastDeltaTicks = deltaTicks;
+        lastDeltaTimeMs = deltaTimeMs;
 
         // exponential smoothing for current RPM
         currentRPM = (1.0 - emaCfg) * currentRPM + emaCfg * measuredRPMScaled;
@@ -129,31 +122,26 @@ public class Flywheel {
         }
         lastAtTarget = atTargetNow;
 
-        // telemetry (minimal)
+        // telemetry (minimal + encoder diag)
         if (telemetry != null) {
             telemetry.addData("fly.Current RPM/n", String.format("%.1f", currentRPM));
             telemetry.addData("fly.targetRPM/n", String.format("%.1f", targetRPM));
             telemetry.addData("fly.power/n", String.format("%.3f", lastAppliedPower));
-//            telemetry.addData("fly.scale", String.format("%.3f", rpmScale));
-//            telemetry.addData("fly.tolerance", String.format("%.2f", toleranceCfg));
-//            telemetry.addData("fly.atTarget", atTargetNow);
+            telemetry.addData("fly.encoder.pos", shooterCurrentPosition);
+            telemetry.addData("fly.encoder.dt(ms)", deltaTimeMs);
+            telemetry.addData("fly.encoder.dticks", deltaTicks);
+            telemetry.addData("fly.mode", shooter.getMode());
         }
     }
 
-    /**
-     * Preserve the left-trigger behavior:
-     * - on press: save previous target and set low intake target
-     * - on release: restore previous target and shooter state
-     */
+    /** Preserve the left-trigger behavior. */
     public void handleLeftTrigger(boolean leftTriggerNow) {
         if (leftTriggerNow && !leftTriggerLast) {
-            // pressed: save and set low target
             savedTargetRPMBeforeLeftTrigger = targetRPM;
             savedShooterOnBeforeLeftTrigger = shooterOn;
             targetRPM = 40.0;
             shooterOn = true;
         } else if (!leftTriggerNow && leftTriggerLast) {
-            // released: restore
             if (savedTargetRPMBeforeLeftTrigger >= 0.0) {
                 targetRPM = savedTargetRPMBeforeLeftTrigger;
                 savedTargetRPMBeforeLeftTrigger = -1.0;
@@ -165,7 +153,6 @@ public class Flywheel {
     }
 
     // external controls / helpers
-
     public void setTargetRPM(double rpm) { targetRPM = rpm; }
     public double getTargetRPM() { return targetRPM; }
 
@@ -180,9 +167,6 @@ public class Flywheel {
     public double getCurrentRPM() { return currentRPM; }
     public double getLastAppliedPower() { return lastAppliedPower; }
 
-    /**
-     * Returns true once when the flywheel just reached the target (rising edge). The flag is cleared on read.
-     */
     public boolean justReachedTarget() {
         if (justReachedTargetFlag) {
             justReachedTargetFlag = false;
@@ -191,28 +175,26 @@ public class Flywheel {
         return false;
     }
 
-    /**
-     * Returns true whenever the current RPM is within the configured tolerance of the target.
-     * Use this from the OpMode to trigger continuous controller vibration while true.
-     */
     public boolean isAtTarget() {
         return Math.abs(targetRPM - currentRPM) <= TARGET_TOLERANCE_RPM;
     }
 
-    // Optional: getters for telemetry-friendly values
     public double getRpmScale() { return rpmScale; }
     public double getFpPercent() {
         return (MAX_RPM > 0) ? (targetRPM / MAX_RPM) : 0.0;
     }
 
-    // Runtime tuning of the tolerance for rumble/vibrate trigger
     public void setTargetToleranceRpm(double tolerance) {
         if (tolerance < 0) tolerance = 0;
         this.targetToleranceRpm = tolerance;
-        TARGET_TOLERANCE_RPM = tolerance; // keep dashboard in sync if changed programmatically
+        TARGET_TOLERANCE_RPM = tolerance;
     }
 
     public double getTargetToleranceRpm() {
         return TARGET_TOLERANCE_RPM;
     }
+
+    // diagnostics
+    public int getLastDeltaTicks() { return lastDeltaTicks; }
+    public long getLastDeltaTimeMs() { return lastDeltaTimeMs; }
 }
