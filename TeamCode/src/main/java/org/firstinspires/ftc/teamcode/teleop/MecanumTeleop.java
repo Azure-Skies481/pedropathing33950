@@ -34,11 +34,13 @@ public class MecanumTeleop extends LinearOpMode {
 
         // Flywheel controller (PID/RPM)
         Flywheel flywheel = new Flywheel(shooter, telemetry);
-        flywheel.setShooterOn(true);    // shooter on by default
-        flywheel.setModeFar(false);     // start at CLOSE target
+        boolean shooterOn = true;          // start ON (matches original behavior)
+        flywheel.setShooterOn(shooterOn);
+        flywheel.setModeFar(false);        // start at CLOSE target
 
         boolean dpadLeftLast = false;
         boolean dpadRightLast = false;
+        boolean dpadDownLast = false;      // for toggle edge-detect
 
         waitForStart();
         if (isStopRequested()) return;
@@ -79,6 +81,14 @@ public class MecanumTeleop extends LinearOpMode {
             dpadRightLast = dpadRightNow;
             dpadLeftLast = dpadLeftNow;
 
+            // --- Shooter on/off toggle (D-pad down) ---
+            boolean dpadDownNow = gamepad2.dpad_down;
+            if (dpadDownNow && !dpadDownLast) {
+                shooterOn = !shooterOn;              // toggle state
+                flywheel.setShooterOn(shooterOn);    // apply to flywheel
+            }
+            dpadDownLast = dpadDownNow;
+
             // Update flywheel PID; no calibration button in this OpMode
             flywheel.update(nowMs, false);
 
@@ -86,6 +96,7 @@ public class MecanumTeleop extends LinearOpMode {
             telemetry.addData("Drive", "FL:%.2f BL:%.2f FR:%.2f BR:%.2f",
                     frontLeftPower, backLeftPower, frontRightPower, backRightPower);
             telemetry.addData("Intake Power", "%.2f", intakePower);
+            telemetry.addData("Shooter On", shooterOn);
             telemetry.addData("Shooter Target RPM", "%.1f", flywheel.getTargetRPM());
             telemetry.addData("Shooter Current RPM", "%.1f", flywheel.getCurrentRPM());
             telemetry.addData("Shooter Power", "%.3f", flywheel.getLastAppliedPower());
