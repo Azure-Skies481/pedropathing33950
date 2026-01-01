@@ -18,7 +18,7 @@ public class MecanumTeleop extends LinearOpMode {
     boolean wasPressedLastFrame = false;
     boolean shooterToggle = false;
 
-    double power = 700;
+    double power = 1500;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -45,53 +45,53 @@ public class MecanumTeleop extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
-
-
         while (opModeIsActive()) {
-                long nowMs = System.currentTimeMillis();
+            long nowMs = System.currentTimeMillis();
 
-                // --- Drive (unchanged) ---
-                double y = -gamepad1.left_stick_y; // Y is reversed
-                double x = gamepad1.left_stick_x;  // Strafing
-                double rx = gamepad1.right_stick_x;
+            // --- Drive (unchanged) ---
+            double y = -gamepad1.left_stick_y; // Y is reversed
+            double x = gamepad1.left_stick_x;  // Strafing
+            double rx = gamepad1.right_stick_x;
 
-                double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-                double frontLeftPower = (y + x + rx) / denominator;
-                double backLeftPower = (y - x + rx) / denominator;
-                double frontRightPower = (y - x - rx) / denominator;
-                double backRightPower = (y + x - rx) / denominator;
+            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+            double frontLeftPower = (y + x + rx) / denominator;
+            double backLeftPower = (y - x + rx) / denominator;
+            double frontRightPower = (y - x - rx) / denominator;
+            double backRightPower = (y + x - rx) / denominator;
 
-                frontLeftMotor.setPower(frontLeftPower);
-                backLeftMotor.setPower(backLeftPower);
-                frontRightMotor.setPower(frontRightPower);
-                backRightMotor.setPower(backRightPower);
-                power+=1;
-                if (gamepad1.dpad_up){
-                    power += 0.5;
-                } else if (gamepad1.dpad_down){
-                    power -= 0.5;
-                }
+            frontLeftMotor.setPower(frontLeftPower);
+            backLeftMotor.setPower(backLeftPower);
+            frontRightMotor.setPower(frontRightPower);
+            backRightMotor.setPower(backRightPower);
 
 
-                if (gamepad1.left_bumper) {
-                    wasPressedLastFrame = true;
-                } else {
-                    if (wasPressedLastFrame) {
-                        shooterToggle = !shooterToggle;
 
-                        if (shooterToggle) {
-                            this.shooter.setVelocity(power);
-                        } else {
-                            this.shooter.setVelocity(0);
-                        }
-                    }
-                    wasPressedLastFrame = false;
-                }
-
-                intake.setVelocity(gamepad1.right_trigger * 1000);
-                telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
-                telemetry.addData("Shooter Target Velocity", power);
-                telemetry.update();
+            if (gamepad1.dpad_up){
+                power = power + 0.5;
+            } else if (gamepad1.dpad_down){
+                power = power - 0.5;
             }
+
+
+            if (gamepad1.left_bumper) {
+                wasPressedLastFrame = true;
+            } else {
+                if (wasPressedLastFrame) {
+                    shooterToggle = !shooterToggle;
+
+                    if (shooterToggle) {
+                        this.shooter.setVelocity(power);
+                    } else {
+                        this.shooter.setVelocity(0);
+                    }
+                }
+                wasPressedLastFrame = false;
+            }
+
+            intake.setVelocity(gamepad1.right_trigger * 1000);
+            telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
+            telemetry.addData("Shooter Target Velocity", power);
+            telemetry.update();
         }
     }
+}
