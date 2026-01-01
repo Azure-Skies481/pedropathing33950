@@ -5,16 +5,20 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
 public class MecanumTeleop extends LinearOpMode {
 
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
-
+    private Servo servoGate = null;
 
     boolean wasPressedLastFrame = false;
     boolean shooterToggle = false;
+
+    boolean gateWasPressedLastFrame = false;
+    boolean gateToggle = false; // false = closed (0.9), true = open (0.1)
 
     double power = 1500;
 
@@ -34,10 +38,14 @@ public class MecanumTeleop extends LinearOpMode {
 
         intake = hardwareMap.get(DcMotorEx.class, "intakemotor");
         shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
+        servoGate = hardwareMap.get(Servo.class, "servogate");
 
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // Initialize gate closed
+        servoGate.setPosition(0.9);
 
         waitForStart();
         if (isStopRequested()) return;
@@ -61,33 +69,54 @@ public class MecanumTeleop extends LinearOpMode {
             frontRightMotor.setPower(frontRightPower);
             backRightMotor.setPower(backRightPower);
 
-
-
-            if (gamepad1.dpad_up){
+            // Speed adjust: right = increase, left = decrease
+            boolean powerChanged = false;
+            if (gamepad1.dpad_right){
                 power = power + 0.5;
-            } else if (gamepad1.dpad_down){
+                powerChanged = true;
+            } else if (gamepad1.dpad_left){
                 power = power - 0.5;
+                powerChanged = true;
+            }
+            // If shooter is on, update to new power immediately
+            if (powerChanged && shooterToggle) {
+                shooter.setVelocity(power);
             }
 
-
-            if (gamepad1.left_bumper) {
+            // Shooter toggle on dpad_down
+            if (gamepad1.dpad_down) {
                 wasPressedLastFrame = true;
             } else {
                 if (wasPressedLastFrame) {
                     shooterToggle = !shooterToggle;
-
                     if (shooterToggle) {
-                        this.shooter.setVelocity(power);
+                        shooter.setVelocity(power);
                     } else {
-                        this.shooter.setVelocity(0);
+                        shooter.setVelocity(0);
                     }
                 }
                 wasPressedLastFrame = false;
             }
 
-            intake.setVelocity(gamepad1.right_trigger * 1000);
+            // Intake: right trigger forward, left trigger reverse
+            double intakeCommand = gamepad1.right_trigger - gamepad1.left_trigger;
+            intake.setVelocity(intakeCommand * 1000);
+
+            // Gate toggle on Y: open 0.1, closed 0.9
+            if (gamepad1.y) {
+                gateWasPressedLastFrame = true;
+            } else {
+                if (gateWasPressedLastFrame) {
+                    gateToggle = !gateToggle;
+                    servoGate.setPosition(gateToggle ? 0.1 : 0.9);
+                }
+                gateWasPressedLastFrame = false;
+            }
+
             telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
             telemetry.addData("Shooter Target Velocity", power);
+            telemetry.addData("Intake Command", intakeCommand);
+            telemetry.addData("Gate Position", servoGate.getPosition());
             telemetry.update();
         }
     }
