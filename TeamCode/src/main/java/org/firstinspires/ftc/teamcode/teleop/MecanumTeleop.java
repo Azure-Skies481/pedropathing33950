@@ -3,47 +3,41 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp
 public class MecanumTeleop extends LinearOpMode {
 
+    private DcMotorEx intake = null;
+    private DcMotorEx shooter = null;
+
+
+    boolean wasPressedLastFrame = false;
+    boolean shooterToggle = false;
+
+    double power = 700;
+
     @Override
     public void runOpMode() throws InterruptedException {
-        // Drivetrain motors
+        // Drivetrain motors (unchanged)
         DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontleftMotor");
         DcMotor backLeftMotor = hardwareMap.dcMotor.get("backleftMotor");
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontrightMotor");
         DcMotor backRightMotor = hardwareMap.dcMotor.get("backrightMotor");
 
-        // Shooter and intake
-        DcMotor shooter = hardwareMap.dcMotor.get("shooterMotor");
-        DcMotor intakeMotor = hardwareMap.dcMotor.get("intakeMotor");
-
-        // Directions
+        // Directions (match dualmotor style)
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);// start at CLOSE target
 
+        intake = hardwareMap.get(DcMotorEx.class, "intakemotor");
+        shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
+
+        intake.setDirection(DcMotorSimple.Direction.FORWARD);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
-        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        // Reset and enable encoder on shooter to ensure ticks update
-        shooter.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        // Flywheel controller (same logic as main HORS shooter)
-        Flywheel flywheel = new Flywheel(shooter, telemetry);
-        flywheel.setShooterOn(true);
-        flywheel.setModeFar(false);                       // start CLOSE
-        flywheel.setTargetRPM(Flywheel.TARGET_RPM_CLOSE); // start 90 RPM
-
-        boolean dpadLeftLast = false;
-        boolean dpadRightLast = false;
-        boolean dpadDownLast = false;
 
         waitForStart();
         if (isStopRequested()) return;
@@ -51,7 +45,7 @@ public class MecanumTeleop extends LinearOpMode {
         while (opModeIsActive()) {
             long nowMs = System.currentTimeMillis();
 
-            // --- Drive ---
+            // --- Drive (unchanged) ---
             double y = -gamepad1.left_stick_y; // Y is reversed
             double x = gamepad1.left_stick_x;  // Strafing
             double rx = gamepad1.right_stick_x;
@@ -67,49 +61,33 @@ public class MecanumTeleop extends LinearOpMode {
             frontRightMotor.setPower(frontRightPower);
             backRightMotor.setPower(backRightPower);
 
-            // --- Intake (gamepad1 triggers) ---
-            double intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
-            intakeMotor.setPower(intakePower);
 
-            // --- Shooter RPM control (gamepad1 only) ---
-            boolean dpadRightNow = gamepad1.dpad_right;
-            boolean dpadLeftNow = gamepad1.dpad_left;
-            if (dpadRightNow && !dpadRightLast) {
-                flywheel.adjustTargetRPM(10.0);   // +10 and hold
-            }
-            if (dpadLeftNow && !dpadLeftLast) {
-                flywheel.adjustTargetRPM(-10.0);  // -10 and hold
-            }
-            dpadRightLast = dpadRightNow;
-            dpadLeftLast = dpadLeftNow;
-
-            // Shooter on/off toggle
-            boolean dpadDownNow = gamepad1.dpad_down;
-            if (dpadDownNow && !dpadDownLast) {
-                flywheel.toggleShooterOn();
-            }
-            dpadDownLast = dpadDownNow;
-
-            // Update flywheel (no calibration button in this OpMode)
-            flywheel.update(nowMs, false);
-
-            // Rumble when at target
-            if (flywheel.isAtTarget()) {
-                try { gamepad1.rumble(200); } catch (Throwable ignored) {}
+            power+=1;
+            if (gamepad1.dpad_up){
+                power += 0.5;
+            } else if (gamepad1.dpad_down){
+                power -= 0.5;
             }
 
-            // --- Telemetry ---
-            telemetry.addData("Drive", "FL:%.2f BL:%.2f FR:%.2f BR:%.2f",
-                    frontLeftPower, backLeftPower, frontRightPower, backRightPower);
-            telemetry.addData("Intake Power", "%.2f", intakePower);
-            telemetry.addData("Shooter On", flywheel.isShooterOn());
-            telemetry.addData("Shooter Target RPM", "%.1f", flywheel.getTargetRPM());
-            telemetry.addData("Shooter Current RPM", "%.1f", flywheel.getCurrentRPM());
-            telemetry.addData("Shooter Power", "%.3f", flywheel.getLastAppliedPower());
-            telemetry.addData("Shooter Enc Pos", shooter.getCurrentPosition());
-            telemetry.addData("Shooter Enc dTicks", flywheel.getLastDeltaTicks());
-            telemetry.addData("Shooter Enc dT(ms)", flywheel.getLastDeltaTimeMs());
-            telemetry.addData("Shooter Mode", shooter.getMode());
+
+            if (gamepad1.left_bumper) {
+                wasPressedLastFrame = true;
+            } else {
+                if (wasPressedLastFrame) {
+                    shooterToggle = !shooterToggle;
+
+                    if (shooterToggle) {
+                        this.shooter.setVelocity(power);
+                    } else {
+                        this.shooter.setVelocity(0);
+                    }
+                }
+                wasPressedLastFrame = false;
+            }
+
+            intake.setVelocity(gamepad1.right_trigger * 1000);
+            telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
+            telemetry.addData("Shooter Target Velocity", power);
             telemetry.update();
         }
     }
