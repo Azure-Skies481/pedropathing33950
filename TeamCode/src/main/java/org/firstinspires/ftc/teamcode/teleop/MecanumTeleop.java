@@ -41,7 +41,7 @@ public class MecanumTeleop extends LinearOpMode {
         servoGate = hardwareMap.get(Servo.class, "servogate");
 
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Initialize gate closed
