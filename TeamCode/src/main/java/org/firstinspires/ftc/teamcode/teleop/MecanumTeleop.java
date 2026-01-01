@@ -118,7 +118,7 @@ public class MecanumTeleop extends LinearOpMode {
                 wasPressedLastFrame = false;
             }
             if (shooterToggle) {
-                this.shooter.setVelocity(power);
+
                 this.shooter.setPower(feedback * (power - actualspeed) + actualspeed/maxspeed);
             } else {
                 this.shooter.setVelocity(0);
