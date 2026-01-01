@@ -18,7 +18,7 @@ public class MecanumTeleop extends LinearOpMode {
 
     double actualspeed;
 
-    private double maxspeed = 2820;
+    private double maxspeed = 2800;
     private double feedback = 0.001;
 
     private double targetspeed = 1000;
@@ -67,9 +67,9 @@ public class MecanumTeleop extends LinearOpMode {
             long nowMs = System.currentTimeMillis();
 
             // --- Drive (unchanged) ---
-            double y = -gamepad1.left_stick_y; // Y is reversed
-            double x = gamepad1.left_stick_x;  // Strafing
-            double rx = gamepad1.right_stick_x;
+            double y = -gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y);
+            double x = gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x);
+            double rx = Math.pow(gamepad1.right_stick_x, 3.0);
 
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
             double frontLeftPower = (y + x + rx) / denominator;
@@ -82,17 +82,15 @@ public class MecanumTeleop extends LinearOpMode {
             frontRightMotor.setPower(frontRightPower);
             backRightMotor.setPower(backRightPower);
 
-            double actualspeed = -shooter.getVelocity();
+            double actualspeed = shooter.getVelocity();
 
-
-
-            if (gamepad2.dpad_up){
+            if (gamepad1.dpad_up){
                 power = power + 0.5;
-            } else if (gamepad2.dpad_down){
+            } else if (gamepad1.dpad_down){
                 power = power - 0.5;
             }
 
-            if (gamepad2.right_bumper) {
+            if (gamepad1.right_bumper) {
                 gateWasPressedLastFrame = true;
             } else {
                 if (gateWasPressedLastFrame) {
@@ -109,7 +107,7 @@ public class MecanumTeleop extends LinearOpMode {
             }
 
 
-            if (gamepad2.left_bumper) {
+            if (gamepad1.left_bumper) {
                 wasPressedLastFrame = true;
             } else {
                 if (wasPressedLastFrame) {
@@ -124,8 +122,8 @@ public class MecanumTeleop extends LinearOpMode {
                 this.shooter.setVelocity(0);
             }
 
-            reverseintake.setVelocity(gamepad2.left_trigger * 1500);
-            intake.setVelocity(gamepad2.right_trigger * -1500);
+            reverseintake.setVelocity(gamepad1.left_trigger * 1500);
+            intake.setVelocity(gamepad1.right_trigger * -1500);
             telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
             telemetry.addData("Shooter Target Velocity", power);
             telemetry.addData("Gate Open?", gateOpen);
