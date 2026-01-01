@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class MecanumTeleop extends LinearOpMode {
 
     private DcMotorEx intake = null;
+
+    private DcMotorEx reverseintake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
 
@@ -30,15 +32,18 @@ public class MecanumTeleop extends LinearOpMode {
 
         // Directions (match dualmotor style)
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);// start at CLOSE target
 
         intake = hardwareMap.get(DcMotorEx.class, "intakemotor");
+        reverseintake = hardwareMap.get(DcMotorEx.class, "intakemotor");
+
         shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
 
-        intake.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        reverseintake.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -78,17 +83,17 @@ public class MecanumTeleop extends LinearOpMode {
             } else {
                 if (wasPressedLastFrame) {
                     shooterToggle = !shooterToggle;
-
-                    if (shooterToggle) {
-                        this.shooter.setVelocity(power);
-                    } else {
-                        this.shooter.setVelocity(0);
-                    }
                 }
                 wasPressedLastFrame = false;
             }
+            if (shooterToggle) {
+                this.shooter.setVelocity(power);
+            } else {
+                this.shooter.setVelocity(0);
+            }
 
-            intake.setVelocity(gamepad1.right_trigger * 1000);
+            reverseintake.setVelocity(gamepad1.left_trigger * 1500);
+            intake.setVelocity(gamepad1.right_trigger * -1500);
             telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
             telemetry.addData("Shooter Target Velocity", power);
             telemetry.update();
