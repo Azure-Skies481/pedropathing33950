@@ -16,7 +16,7 @@ public class MecanumTeleop extends LinearOpMode {
     boolean wasPressedLastFrame = false;
     boolean shooterToggle = false;
 
-    double power = 700;
+    double power = 1500;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -62,11 +62,11 @@ public class MecanumTeleop extends LinearOpMode {
             backRightMotor.setPower(backRightPower);
 
 
-            power+=1;
+
             if (gamepad1.dpad_up){
-                power += 0.5;
+                power = power + 0.5;
             } else if (gamepad1.dpad_down){
-                power -= 0.5;
+                power = power - 0.5;
             }
 
 
