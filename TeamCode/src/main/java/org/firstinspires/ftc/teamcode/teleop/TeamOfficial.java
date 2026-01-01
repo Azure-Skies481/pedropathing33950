@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
 @Configurable
@@ -14,22 +15,29 @@ public class TeamOfficial extends LinearOpMode {
 
     private DcMotorEx intake = null;
     private DcMotorEx shooterMotor = null;
+    private Servo servoGate = null;
 
     // Panels-configurable values (tuned live via Panels/Sorter)
-    @Sorter(sort = 0) public static double CFG_MAX_RPM = 6000.0;
+    @Sorter(sort = 0) public static double CFG_MAX_RPM = 1400.0;
     @Sorter(sort = 1) public static double CFG_TICKS_PER_REV = 112.0;   // 28 PPR * 4
     @Sorter(sort = 2) public static double CFG_DEFAULT_RPM = 800.0;
     @Sorter(sort = 3) public static double CFG_RPM_INCREMENT = 50.0;
     @Sorter(sort = 4) public static double CFG_RPM_TOLERANCE = 100.0;
-    @Sorter(sort = 5) public static double CFG_kP = 6.0;
-    @Sorter(sort = 6) public static double CFG_kI = 0.0;
-    @Sorter(sort = 7) public static double CFG_kD = 1.0;
-    @Sorter(sort = 8) public static double CFG_kF = 2.93; // recomputed each loop from CFG_MAX_RPM, but exposed for override
+    @Sorter(sort = 5) public static double CFG_kP = 4.0;
+    @Sorter(sort = 6) public static double CFG_kI = 0.0005;
+    @Sorter(sort = 7) public static double CFG_kD = 0.1;
+    @Sorter(sort = 8) public static double CFG_kF = 5.0; // exposed override; recomputed from CFG_MAX_RPM if <=0
 
     // Runtime constants
     private static final double SHOOTER_MIN_RPM = 0.0;
     private static final int RUMBLE_DURATION_MS = 200;
     private static final long DPAD_DEBOUNCE_MS = 200;
+    private static final double BOOST_ERROR_RPM = 200.0;   // when error > this, add a small FF boost
+    private static final double BOOST_MULT = 1.15;         // feedforward boost multiplier (clamped later)
+
+    // Servo gate positions
+    private static final double GATE_OPEN = 0;
+    private static final double GATE_CLOSED = 0.8;
 
     // State
     private double targetShooterRpm = CFG_DEFAULT_RPM;
@@ -41,6 +49,10 @@ public class TeamOfficial extends LinearOpMode {
     private boolean prevDpadRight = false;
     private long lastDpadLeftMs = 0;
     private long lastDpadRightMs = 0;
+
+    // Gate toggle
+    private boolean gateOpen = false;
+    private boolean prevY = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -66,9 +78,11 @@ public class TeamOfficial extends LinearOpMode {
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        applyPidfFromConfig(CFG_kF);
 
-        // Apply initial PIDF (will be refreshed each loop from config)
-        applyPidfFromConfig();
+        // Servo gate
+        servoGate = hardwareMap.get(Servo.class, "servogate");
+        setGate(gateOpen); // start closed
 
         targetShooterRpm = CFG_DEFAULT_RPM;
         shooterEnabled = false;
@@ -83,7 +97,7 @@ public class TeamOfficial extends LinearOpMode {
         while (opModeIsActive()) {
             long nowMs = System.currentTimeMillis();
 
-            // Drive (unchanged)
+            // --- Drive (unchanged) ---
             double y = -gamepad1.left_stick_y; // Y is reversed
             double x = gamepad1.left_stick_x;  // Strafing
             double rx = gamepad1.right_stick_x;
@@ -114,7 +128,7 @@ public class TeamOfficial extends LinearOpMode {
                     shooterMotor.setPower(0);
                 } else {
                     shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    applyPidfFromConfig();
+                    applyPidfFromConfig(CFG_kF);
                     shooterMotor.setVelocity(rpmToTicksPerSecond(targetShooterRpm));
                 }
             }
@@ -131,20 +145,33 @@ public class TeamOfficial extends LinearOpMode {
                 lastDpadRightMs = nowMs;
             }
 
-            // Apply velocity if enabled (keeps trying to meet target)
-            if (shooterEnabled) {
-                applyPidfFromConfig(); // pull live panel values
-                shooterMotor.setVelocity(rpmToTicksPerSecond(targetShooterRpm));
-            }
-
-            // Continuous rumble when within tolerance
+            // Apply velocity if enabled (keeps trying to meet target) with a mild FF boost for faster spin-up
             if (shooterEnabled) {
                 double currentRpm = ticksPerSecondToRpm(shooterMotor.getVelocity());
                 double rpmError = Math.abs(targetShooterRpm - currentRpm);
+
+                // Boost kF when far from target to speed up acceleration
+                double kfToUse = CFG_kF;
+                if (rpmError > BOOST_ERROR_RPM) {
+                    kfToUse = Math.min(CFG_kF * BOOST_MULT, CFG_kF * 1.5); // safety clamp
+                }
+
+                applyPidfFromConfig(kfToUse);
+                shooterMotor.setVelocity(rpmToTicksPerSecond(targetShooterRpm));
+
+                // Rumble continuously while within tolerance
                 if (rpmError <= CFG_RPM_TOLERANCE) {
                     gamepad1.rumble(1.0, 1.0, RUMBLE_DURATION_MS);
                 }
             }
+
+            // Gate toggle on Y
+            boolean yPressed = gamepad1.y;
+            if (yPressed && !prevY) {
+                gateOpen = !gateOpen;
+                setGate(gateOpen);
+            }
+            prevY = yPressed;
 
             // Save button states
             prevDpadDown = dpadDown;
@@ -156,7 +183,8 @@ public class TeamOfficial extends LinearOpMode {
             telemetry.addData("Target RPM", targetShooterRpm);
             telemetry.addData("Current RPM", ticksPerSecondToRpm(shooterMotor.getVelocity()));
             telemetry.addData("RPM Error", Math.abs(targetShooterRpm - ticksPerSecondToRpm(shooterMotor.getVelocity())));
-            telemetry.addData("kP/kI/kD/kF", "%.3f / %.3f / %.3f / %.3f", CFG_kP, CFG_kI, CFG_kD, CFG_kF);
+            telemetry.addData("kP/kI/kD/kF", "%.4f / %.4f / %.4f / %.4f", CFG_kP, CFG_kI, CFG_kD, CFG_kF);
+            telemetry.addData("Gate", gateOpen ? "OPEN" : "CLOSED");
             telemetry.update();
         }
     }
@@ -166,8 +194,8 @@ public class TeamOfficial extends LinearOpMode {
         return (maxTicksPerSec > 1e-6) ? (32767.0 / maxTicksPerSec) : 0.0;
     }
 
-    private void applyPidfFromConfig() {
-        double kf = (CFG_kF > 0) ? CFG_kF : computeKF(CFG_MAX_RPM);
+    private void applyPidfFromConfig(double kfOverride) {
+        double kf = (kfOverride > 0) ? kfOverride : computeKF(CFG_MAX_RPM);
         shooterMotor.setVelocityPIDFCoefficients(CFG_kP, CFG_kI, CFG_kD, kf);
     }
 
@@ -177,5 +205,11 @@ public class TeamOfficial extends LinearOpMode {
 
     private double ticksPerSecondToRpm(double ticksPerSecond) {
         return ticksPerSecond * 60.0 / CFG_TICKS_PER_REV;
+    }
+
+    private void setGate(boolean open) {
+        if (servoGate != null) {
+            servoGate.setPosition(open ? GATE_OPEN : GATE_CLOSED);
+        }
     }
 }
