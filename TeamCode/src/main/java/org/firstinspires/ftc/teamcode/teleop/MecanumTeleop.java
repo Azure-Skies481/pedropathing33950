@@ -86,13 +86,13 @@ public class MecanumTeleop extends LinearOpMode {
 
 
 
-            if (gamepad1.dpad_up){
+            if (gamepad2.dpad_up){
                 power = power + 0.5;
-            } else if (gamepad1.dpad_down){
+            } else if (gamepad2.dpad_down){
                 power = power - 0.5;
             }
 
-            if (gamepad1.right_bumper) {
+            if (gamepad2.right_bumper) {
                 gateWasPressedLastFrame = true;
             } else {
                 if (gateWasPressedLastFrame) {
@@ -109,7 +109,7 @@ public class MecanumTeleop extends LinearOpMode {
             }
 
 
-            if (gamepad1.left_bumper) {
+            if (gamepad2.left_bumper) {
                 wasPressedLastFrame = true;
             } else {
                 if (wasPressedLastFrame) {
@@ -124,8 +124,8 @@ public class MecanumTeleop extends LinearOpMode {
                 this.shooter.setVelocity(0);
             }
 
-            reverseintake.setVelocity(gamepad1.left_trigger * 1500);
-            intake.setVelocity(gamepad1.right_trigger * -1500);
+            reverseintake.setVelocity(gamepad2.left_trigger * 1500);
+            intake.setVelocity(gamepad2.right_trigger * -1500);
             telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
             telemetry.addData("Shooter Target Velocity", power);
             telemetry.addData("Gate Open?", gateOpen);
