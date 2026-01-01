@@ -18,6 +18,10 @@ public class MecanumTeleop extends LinearOpMode {
 
 
     boolean wasPressedLastFrame = false;
+
+    boolean gateWasPressedLastFrame = false;
+
+    boolean gateOpen = false; //satoru ... suguru...
     boolean shooterToggle = false;
 
     double power = 1500;
@@ -75,6 +79,22 @@ public class MecanumTeleop extends LinearOpMode {
                 power = power + 0.5;
             } else if (gamepad1.dpad_down){
                 power = power - 0.5;
+            }
+
+            if (gamepad1.right_bumper) {
+                gateWasPressedLastFrame = true;
+            } else {
+                if (gateWasPressedLastFrame) {
+                    gateOpen = !gateOpen;
+                }
+                gateWasPressedLastFrame = false;
+            }
+            if (gateOpen) {
+                //open
+                gate.setPosition(1.0);
+            } else {
+                //close
+                gate.setPosition(0.0);
             }
 
 
