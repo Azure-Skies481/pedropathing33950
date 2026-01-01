@@ -5,7 +5,7 @@ import com.bylazar. configurables.annotations. Sorter;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode. TeleOp;
 import com.qualcomm. robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore. hardware.DcMotorEx;
+import com. qualcomm.robotcore.hardware.DcMotorEx;
 import com. qualcomm.robotcore.hardware.DcMotorSimple;
 import com. qualcomm.robotcore.hardware. Servo;
 import com.qualcomm. robotcore.util. ElapsedTime;
@@ -20,8 +20,8 @@ public class AutoTunePID extends LinearOpMode {
 
     // Panels-configurable values (tuned live via Panels/Sorter)
     @Sorter(sort = 0) public static double CFG_MAX_RPM = 1400.0;
-    @Sorter(sort = 1) public static double CFG_TICKS_PER_REV = 112.0;   // 28 PPR * 4
-    @Sorter(sort = 2) public static double CFG_DEFAULT_RPM = 670;
+    @Sorter(sort = 1) public static double CFG_TICKS_PER_REV = 112.0;
+    @Sorter(sort = 2) public static double CFG_DEFAULT_RPM = 800.0;
     @Sorter(sort = 3) public static double CFG_RPM_INCREMENT = 50.0;
     @Sorter(sort = 4) public static double CFG_RPM_TOLERANCE = 100.0;
 
@@ -32,17 +32,17 @@ public class AutoTunePID extends LinearOpMode {
     @Sorter(sort = 8) public static double CFG_kF = 10.0;
 
     // Auto-tune settings
-    @Sorter(sort = 9) public static double CFG_TARGET_SETTLE_TIME_MS = 500.0;  // desired time to reach RPM
-    @Sorter(sort = 10) public static double CFG_TUNE_STEP = 1.5;               // multiplier for tuning adjustments
+    @Sorter(sort = 9) public static double CFG_TARGET_SETTLE_TIME_MS = 500.0;
+    @Sorter(sort = 10) public static double CFG_TUNE_STEP = 1.5;
 
     // Runtime constants
     private static final double SHOOTER_MIN_RPM = 0.0;
-    private static final int RUMBLE_DURATION_MS = 2000;
-    private static final long DPAD_DEBOUNCE_MS = 20;
+    private static final int RUMBLE_DURATION_MS = 200;
+    private static final long DPAD_DEBOUNCE_MS = 200;
 
     // Servo gate positions
     private static final double GATE_OPEN = 0.1;
-    private static final double GATE_CLOSED = 0.6;
+    private static final double GATE_CLOSED = 0.8;
 
     // State
     private double targetShooterRpm = CFG_DEFAULT_RPM;
@@ -72,25 +72,25 @@ public class AutoTunePID extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        // Drivetrain motors (unchanged)
-        DcMotor frontLeftMotor = hardwareMap.dcMotor. get("frontleftMotor");
+        // Drivetrain motors
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontleftMotor");
         DcMotor backLeftMotor = hardwareMap.dcMotor.get("backleftMotor");
         DcMotor frontRightMotor = hardwareMap.dcMotor. get("frontrightMotor");
         DcMotor backRightMotor = hardwareMap.dcMotor. get("backrightMotor");
 
-        // Directions (match dualmotor style)
-        frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRightMotor.setDirection(DcMotorSimple.Direction. REVERSE);
+        // Directions
+        frontRightMotor.setDirection(DcMotorSimple.Direction. FORWARD);
+        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeftMotor.setDirection(DcMotorSimple.Direction. FORWARD);
         backLeftMotor. setDirection(DcMotorSimple. Direction.REVERSE);
 
         intake = hardwareMap. get(DcMotorEx.class, "intakemotor");
-        intake.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake.setDirection(DcMotorSimple.Direction. FORWARD);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior. BRAKE);
 
         // Shooter (flywheel) motor
         shooterMotor = hardwareMap.get(DcMotorEx. class, "shootermotor");
-        shooterMotor. setDirection(DcMotorSimple. Direction.REVERSE);
+        shooterMotor.setDirection(DcMotorSimple.Direction. REVERSE);
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior. FLOAT);
         shooterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -98,7 +98,7 @@ public class AutoTunePID extends LinearOpMode {
 
         // Servo gate
         servoGate = hardwareMap.get(Servo.class, "servogate");
-        setGate(gateOpen); // start closed
+        setGate(gateOpen);
 
         targetShooterRpm = CFG_DEFAULT_RPM;
         shooterEnabled = false;
@@ -108,12 +108,12 @@ public class AutoTunePID extends LinearOpMode {
 
         // Turn on shooter at start of teleop
         shooterEnabled = true;
-        shooterMotor.setVelocity(rpmToTicksPerSecond(targetShooterRpm));
+        shooterMotor. setVelocity(rpmToTicksPerSecond(targetShooterRpm));
 
         while (opModeIsActive()) {
             long nowMs = System.currentTimeMillis();
 
-            // --- Drive (unchanged) ---
+            // Drive
             double y = -gamepad1.left_stick_y;
             double x = gamepad1.left_stick_x;
             double rx = gamepad1.right_stick_x;
@@ -137,26 +137,26 @@ public class AutoTunePID extends LinearOpMode {
             boolean dpadLeft = gamepad1.dpad_left;
             boolean dpadRight = gamepad1.dpad_right;
 
-            // Toggle shooter on/off with dpad down (edge-triggered)
+            // Toggle shooter on/off with dpad down
             if (dpadDown && !prevDpadDown) {
                 shooterEnabled = !shooterEnabled;
                 if (! shooterEnabled) {
                     shooterMotor.setPower(0);
                     tuning = false;
                 } else {
-                    shooterMotor. setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     applyPidfFromConfig();
                     shooterMotor.setVelocity(rpmToTicksPerSecond(targetShooterRpm));
                 }
             }
 
-            // Decrease RPM with dpad left (edge + debounce)
+            // Decrease RPM with dpad left
             if (dpadLeft && !prevDpadLeft && (nowMs - lastDpadLeftMs) >= DPAD_DEBOUNCE_MS) {
                 targetShooterRpm = Math.max(SHOOTER_MIN_RPM, targetShooterRpm - CFG_RPM_INCREMENT);
                 lastDpadLeftMs = nowMs;
             }
 
-            // Increase RPM with dpad right (edge + debounce)
+            // Increase RPM with dpad right
             if (dpadRight && !prevDpadRight && (nowMs - lastDpadRightMs) >= DPAD_DEBOUNCE_MS) {
                 targetShooterRpm = Math.min(CFG_MAX_RPM, targetShooterRpm + CFG_RPM_INCREMENT);
                 lastDpadRightMs = nowMs;
@@ -201,26 +201,26 @@ public class AutoTunePID extends LinearOpMode {
             prevDpadLeft = dpadLeft;
             prevDpadRight = dpadRight;
 
-            // Telemetry
+            // Telemetry - no format strings, just manual rounding
             double currentRpmDisplay = ticksPerSecondToRpm(shooterMotor.getVelocity());
             double rpmErrorDisplay = targetShooterRpm - currentRpmDisplay;
 
             telemetry.addData("Shooter Enabled", shooterEnabled);
             telemetry.addData("Target RPM", targetShooterRpm);
-            telemetry.addData("Current RPM", String.format("%.1f", currentRpmDisplay));
-            telemetry.addData("RPM Error", String.format("%. 1f", rpmErrorDisplay));
+            telemetry.addData("Current RPM", Math.round(currentRpmDisplay * 10.0) / 10.0);
+            telemetry.addData("RPM Error", Math.round(rpmErrorDisplay * 10.0) / 10.0);
             telemetry.addLine();
-            telemetry.addData("kP", String.format("%.2f", CFG_kP));
-            telemetry.addData("kI", String.format("%. 4f", CFG_kI));
-            telemetry.addData("kD", String.format("%. 2f", CFG_kD));
-            telemetry.addData("kF", String.format("%. 2f", CFG_kF));
-            telemetry. addLine();
-            telemetry.addData("Tuning", tuning ?  "ACTIVE (iter " + tuneIteration + ")" : "Press A to tune");
-            telemetry. addData("Last Settle Time (ms)", String.format("%.0f", lastSettleTimeMs));
-            telemetry.addData("Target Settle Time (ms)", String.format("%.0f", CFG_TARGET_SETTLE_TIME_MS));
-            telemetry.addData("Last Overshoot", String.format("%. 1f RPM", peakOvershoot));
-            telemetry.addData("Gate", gateOpen ?  "OPEN" :  "CLOSED");
-            telemetry. update();
+            telemetry.addData("kP", Math.round(CFG_kP * 100.0) / 100.0);
+            telemetry. addData("kI", Math.round(CFG_kI * 10000.0) / 10000.0);
+            telemetry.addData("kD", Math.round(CFG_kD * 100.0) / 100.0);
+            telemetry. addData("kF", Math.round(CFG_kF * 100.0) / 100.0);
+            telemetry.addLine();
+            telemetry. addData("Tuning", tuning ?  "ACTIVE (iter " + tuneIteration + ")" : "Press A to tune");
+            telemetry. addData("Last Settle Time (ms)", Math.round(lastSettleTimeMs));
+            telemetry.addData("Target Settle Time (ms)", Math.round(CFG_TARGET_SETTLE_TIME_MS));
+            telemetry.addData("Last Overshoot RPM", Math.round(peakOvershoot * 10.0) / 10.0);
+            telemetry.addData("Gate", gateOpen ? "OPEN" : "CLOSED");
+            telemetry.update();
         }
     }
 
@@ -245,7 +245,7 @@ public class AutoTunePID extends LinearOpMode {
 
         // Apply current PIDF
         applyPidfFromConfig();
-        shooterMotor. setVelocity(rpmToTicksPerSecond(targetShooterRpm));
+        shooterMotor.setVelocity(rpmToTicksPerSecond(targetShooterRpm));
     }
 
     private void runTuningCycle() {
@@ -255,12 +255,10 @@ public class AutoTunePID extends LinearOpMode {
 
         // Track overshoot
         if (tuneTargetRpm > tuneStartRpm) {
-            // Speeding up:  overshoot is when current > target
             if (currentRpm > tuneTargetRpm) {
                 peakOvershoot = Math.max(peakOvershoot, currentRpm - tuneTargetRpm);
             }
         } else {
-            // Slowing down: overshoot is when current < target
             if (currentRpm < tuneTargetRpm) {
                 peakOvershoot = Math.max(peakOvershoot, tuneTargetRpm - currentRpm);
             }
@@ -286,39 +284,30 @@ public class AutoTunePID extends LinearOpMode {
             lastSettleTimeMs = tuneTimer.milliseconds();
             applyAutoTuneAdjustments();
             tuning = false;
-            gamepad1.rumble(1.0, 0.0, 500); // left rumble only = timeout
+            gamepad1.rumble(1.0, 0.0, 500);
         }
     }
 
     private void applyAutoTuneAdjustments() {
         double settleRatio = lastSettleTimeMs / CFG_TARGET_SETTLE_TIME_MS;
 
-        // If settle time is too slow (ratio > 1), increase gains
-        // If settle time is too fast with overshoot, decrease gains slightly
-        // If settle time is good with no overshoot, we're done
-
         boolean hasOvershoot = peakOvershoot > CFG_RPM_TOLERANCE * 0.5;
 
         if (settleRatio > 1.5) {
-            // Way too slow:  increase kP and kF significantly
             CFG_kP *= CFG_TUNE_STEP;
             CFG_kF *= CFG_TUNE_STEP;
             CFG_kI *= 1.2;
         } else if (settleRatio > 1.1) {
-            // A bit slow: mild increase
             CFG_kP *= 1.2;
             CFG_kF *= 1.1;
         } else if (settleRatio < 0.8 && hasOvershoot) {
-            // Fast but overshooting: reduce kP, increase kD
             CFG_kP *= 0.85;
             CFG_kD += 0.5;
             CFG_kI *= 0.9;
         } else if (hasOvershoot) {
-            // Overshoot without being too fast: add damping
             CFG_kD += 0.3;
             CFG_kP *= 0.95;
         }
-        // else: settle time is good and no significant overshoot, keep gains
 
         // Clamp values to reasonable ranges
         CFG_kP = clamp(CFG_kP, 1.0, 100.0);
@@ -331,7 +320,7 @@ public class AutoTunePID extends LinearOpMode {
     }
 
     private double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
+        return Math. max(min, Math.min(max, value));
     }
 
     private void applyPidfFromConfig() {
