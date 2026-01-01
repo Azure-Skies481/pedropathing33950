@@ -16,6 +16,13 @@ public class MecanumTeleop extends LinearOpMode {
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
 
+    double actualspeed;
+
+    private double maxspeed = 2820;
+    private double feedback = 0.001;
+
+    private double targetspeed = 1000;
+
 
     boolean wasPressedLastFrame = false;
 
@@ -46,6 +53,8 @@ public class MecanumTeleop extends LinearOpMode {
         shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
 
+
+
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         reverseintake.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -72,6 +81,8 @@ public class MecanumTeleop extends LinearOpMode {
             backLeftMotor.setPower(backLeftPower);
             frontRightMotor.setPower(frontRightPower);
             backRightMotor.setPower(backRightPower);
+
+            double actualspeed = -shooter.getVelocity();
 
 
 
@@ -108,6 +119,7 @@ public class MecanumTeleop extends LinearOpMode {
             }
             if (shooterToggle) {
                 this.shooter.setVelocity(power);
+                this.shooter.setPower(feedback * (power - actualspeed) + actualspeed/maxspeed);
             } else {
                 this.shooter.setVelocity(0);
             }
