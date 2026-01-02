@@ -53,10 +53,10 @@ public class IMUalign extends LinearOpMode {
     private double startHeadingDeg = 0.0;
 
     // Turn-to-heading gains
-    private static final double ALIGN_KP = 0.015;      // proportional gain
+    private static final double ALIGN_KP = 0.00004;      // proportional gain
     private static final double ALIGN_MIN_PWR = 0.08;  // minimum turn power to overcome static friction
     private static final double ALIGN_MAX_PWR = 0.45;  // clamp turn power
-    private static final double ALIGN_TOL_DEG = 2.0;   // stop when within tolerance (degrees)
+    private static final double ALIGN_TOL_DEG = 10.5;   // stop when within tolerance (degrees)
 
     @Override
     public void runOpMode() throws InterruptedException {

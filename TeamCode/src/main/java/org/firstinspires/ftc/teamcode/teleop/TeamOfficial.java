@@ -54,7 +54,7 @@ public class TeamOfficial extends LinearOpMode {
 
         double maxSpeed = 2570;
         double feedback = 0.003;
-        double targetShooterRPM = 900;
+        double targetShooterRPM = 950;
 
         // Directions (match dualmotor style)
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -125,14 +125,14 @@ public class TeamOfficial extends LinearOpMode {
             frontRightMotor.setPower(slowMode*frontRightPower);
             backRightMotor.setPower(slowMode*backRightPower);
 
-            if (gamepad1.right_bumper){
+            if (gamepad1.right_bumper||gamepad2.right_bumper){
                 frontLeftMotor.setPower(0.2);
                 backLeftMotor.setPower(0.2);
                 frontRightMotor.setPower(-0.2);
                 backRightMotor.setPower(-0.2);
             }
 
-            if (gamepad1.left_bumper){
+            if (gamepad1.left_bumper||gamepad2.left_bumper){
                 frontLeftMotor.setPower(-0.2);
                 backLeftMotor.setPower(-0.2);
                 frontRightMotor.setPower(0.2);
