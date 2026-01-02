@@ -25,8 +25,8 @@ public class FieldcenteredTest extends LinearOpMode {
     private double feedback = 0.001;
     private double targetspeed = 1000;
     boolean wasPressedLastFrame = false;
-    boolean gateWasPressedLastFrame = false;
-    boolean gateOpen = false; //satoru ... suguru...
+    boolean gateWasPressedLastFrame = false; //Satoru...
+    boolean gateOpen = false; //Suguru...
     boolean shooterToggle = false;
     double power = 1500;
 

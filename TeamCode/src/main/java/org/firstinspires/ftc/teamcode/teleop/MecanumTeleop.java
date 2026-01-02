@@ -18,6 +18,8 @@ public class MecanumTeleop extends LinearOpMode {
 
     double actualspeed;
 
+    double driveSpeed = 0.3;
+
     private double maxspeed = 2800;
     private double feedback = 0.001;
 
@@ -65,6 +67,9 @@ public class MecanumTeleop extends LinearOpMode {
 
         while (opModeIsActive()) {
             long nowMs = System.currentTimeMillis();
+
+            driveSpeed += gamepad1.right_trigger*0.7;
+
 
             // --- Drive (unchanged) ---
             double y = -gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y);
@@ -117,7 +122,7 @@ public class MecanumTeleop extends LinearOpMode {
             }
             if (shooterToggle) {
 
-                this.shooter.setPower(feedback * (power - actualspeed) + actualspeed/maxspeed);
+                this.shooter.setPower(driveSpeed*(feedback * (power - actualspeed) + actualspeed/maxspeed));
             } else {
                 this.shooter.setVelocity(0);
             }
