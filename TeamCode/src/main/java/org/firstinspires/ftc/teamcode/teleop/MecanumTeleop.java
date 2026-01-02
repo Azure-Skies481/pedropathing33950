@@ -18,7 +18,7 @@ public class MecanumTeleop extends LinearOpMode {
 
     double actualspeed;
 
-    double driveSpeed = 0.3;
+    double driveSpeed;
 
     private double maxspeed = 2800;
     private double feedback = 0.001;
@@ -33,7 +33,7 @@ public class MecanumTeleop extends LinearOpMode {
     boolean gateOpen = false; //satoru ... suguru...
     boolean shooterToggle = false;
 
-    double power = 1500;
+    double power = 1000;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -67,6 +67,7 @@ public class MecanumTeleop extends LinearOpMode {
 
         while (opModeIsActive()) {
             long nowMs = System.currentTimeMillis();
+            driveSpeed = 0.3;
 
             driveSpeed += gamepad1.right_trigger*0.7;
 
@@ -90,9 +91,9 @@ public class MecanumTeleop extends LinearOpMode {
             double actualspeed = shooter.getVelocity();
 
             if (gamepad2.dpad_up){
-                power = power + 0.5;
+                power = power + 2;
             } else if (gamepad2.dpad_down){
-                power = power - 0.5;
+                power = power - 2;
             }
 
             if (gamepad2.right_bumper) {
