@@ -7,10 +7,11 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+
 @TeleOp
 public class MecanumTeleop extends LinearOpMode {
+
     private DcMotorEx intake = null;
-    private DcMotorEx reverseintake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
     double driveSpeed;
@@ -27,6 +28,7 @@ public class MecanumTeleop extends LinearOpMode {
 
     double power = 1400;
 
+
     @Override
     public void runOpMode() throws InterruptedException {
         // Drivetrain motors (unchanged)
@@ -42,7 +44,6 @@ public class MecanumTeleop extends LinearOpMode {
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);// start at CLOSE target
 
         intake = hardwareMap.get(DcMotorEx.class, "intakemotor");
-        reverseintake = hardwareMap.get(DcMotorEx.class, "intakemotor");
 
         shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
@@ -50,7 +51,6 @@ public class MecanumTeleop extends LinearOpMode {
 
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        reverseintake.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -90,7 +90,7 @@ public class MecanumTeleop extends LinearOpMode {
                 power = 1250;
             } else if (gamepad2.dpad_down){
                 power = 1150;
-            }
+            } else if (gamepad2.dpad_right) power = 1650;
 
             if (intakeUsedLastFrame && gamepad2.right_trigger==0 && gateOpen) gate.setPosition(0.0);
 
@@ -132,8 +132,7 @@ public class MecanumTeleop extends LinearOpMode {
                 this.shooter.setVelocity(0);
             }
 
-            reverseintake.setPower(gamepad2.left_trigger);
-            intake.setPower(gamepad2.right_trigger * -0.5);
+            intake.setPower(gamepad2.right_trigger * -0.5 - gamepad2.left_trigger);
             intakeUsedLastFrame = gamepad2.right_trigger > 0;
             telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
             telemetry.addData("Shooter Target Velocity", power);

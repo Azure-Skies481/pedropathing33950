@@ -10,7 +10,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 // NOTE: adjust these imports if DriveEncoderConstants / Encoder are in a different package in your project
 import com.pedropathing.ftc.localization.constants.DriveEncoderConstants;
 public class Constants {
-    public static FollowerConstants followerConstants = new FollowerConstants();
+    public static FollowerConstants followerConstants = new FollowerConstants().mass(5);
+
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
