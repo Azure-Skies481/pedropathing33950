@@ -9,17 +9,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
 public class MecanumTeleop extends LinearOpMode {
-
     private DcMotorEx intake = null;
-
     private DcMotorEx reverseintake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
-
     double actualspeed;
-
     double driveSpeed;
-
     private double maxspeed = 2800;
     private double feedback = 0.001;
 
@@ -67,9 +62,9 @@ public class MecanumTeleop extends LinearOpMode {
 
         while (opModeIsActive()) {
             long nowMs = System.currentTimeMillis();
-            driveSpeed = 0.3;
+            driveSpeed = 0.4;
 
-            driveSpeed += gamepad1.right_trigger*0.7;
+            driveSpeed += gamepad1.right_trigger*0.6;
 
 
             // --- Drive (unchanged) ---
@@ -78,10 +73,10 @@ public class MecanumTeleop extends LinearOpMode {
             double rx = Math.pow(gamepad1.right_stick_x, 3.0);
 
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = (y + x + rx) / denominator;
-            double backLeftPower = (y - x + rx) / denominator;
-            double frontRightPower = (y - x - rx) / denominator;
-            double backRightPower = (y + x - rx) / denominator;
+            double frontLeftPower = driveSpeed*((y + x + rx) / denominator);
+            double backLeftPower = driveSpeed*((y - x + rx) / denominator);
+            double frontRightPower = driveSpeed*((y - x - rx) / denominator);
+            double backRightPower = driveSpeed*((y + x - rx) / denominator);
 
             frontLeftMotor.setPower(frontLeftPower);
             backLeftMotor.setPower(backLeftPower);
@@ -123,7 +118,7 @@ public class MecanumTeleop extends LinearOpMode {
             }
             if (shooterToggle) {
 
-                this.shooter.setPower(driveSpeed*(feedback * (power - actualspeed) + actualspeed/maxspeed));
+                this.shooter.setPower((feedback * (power - actualspeed) + actualspeed/maxspeed));
             } else {
                 this.shooter.setVelocity(0);
             }
