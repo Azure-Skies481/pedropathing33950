@@ -8,7 +8,9 @@ import com.qualcomm.robotcore. hardware.DcMotorEx;
 import com. qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm. robotcore.hardware. Servo;
 import com.qualcomm.robotcore.hardware. Gamepad;
-
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 @TeleOp
 @Configurable
 public class TeamOfficial extends LinearOpMode {
@@ -52,7 +54,7 @@ public class TeamOfficial extends LinearOpMode {
 
         double maxSpeed = 2570;
         double feedback = 0.003;
-        double targetShooterRPM = 650;
+        double targetShooterRPM = 900;
 
         // Directions (match dualmotor style)
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -75,6 +77,15 @@ public class TeamOfficial extends LinearOpMode {
         setGate(gateOpen);
         shooterEnabled = false;
 
+        // Retrieve the IMU from the hardware map
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        // Adjust the orientation parameters to match your robot
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+        imu.initialize(parameters);
+
         waitForStart();
         if (isStopRequested()) return;
 
@@ -89,34 +100,71 @@ public class TeamOfficial extends LinearOpMode {
             double x = gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x);
             double rx = Math.pow(gamepad1.right_stick_x, 3.0);
 
-            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+            if (gamepad1.options) {
+                imu.resetYaw();
+            }
+
+
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio,
+            // but only if at least one is out of the range [-1, 1]
+            double slowMode = 0.5;
+
+            if (gamepad1.left_stick_button) {
+                slowMode = 1;
+            }
+
+            double denominator = (Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1));
             double frontLeftPower = (y + x + rx) / denominator;
             double backLeftPower = (y - x + rx) / denominator;
             double frontRightPower = (y - x - rx) / denominator;
             double backRightPower = (y + x - rx) / denominator;
 
-            frontLeftMotor.setPower(frontLeftPower);
-            backLeftMotor.setPower(backLeftPower);
-            frontRightMotor. setPower(frontRightPower);
-            backRightMotor.setPower(backRightPower);
+            frontLeftMotor.setPower(slowMode*frontLeftPower);
+            backLeftMotor.setPower(slowMode*backLeftPower);
+            frontRightMotor.setPower(slowMode*frontRightPower);
+            backRightMotor.setPower(slowMode*backRightPower);
+
+            if (gamepad1.right_bumper){
+                frontLeftMotor.setPower(0.2);
+                backLeftMotor.setPower(0.2);
+                frontRightMotor.setPower(-0.2);
+                backRightMotor.setPower(-0.2);
+            }
+
+            if (gamepad1.left_bumper){
+                frontLeftMotor.setPower(-0.2);
+                backLeftMotor.setPower(-0.2);
+                frontRightMotor.setPower(0.2);
+                backRightMotor.setPower(0.2);
+            }
 
             // Intake control
-            intake.setVelocity(gamepad1.right_trigger * 1000);
+            if (gamepad2.right_trigger > 0.8) {
+                intake.setVelocity(1000);
+            }
 
+            if (gamepad2.left_trigger > 0.8) {
+                intake.setVelocity(-1000);
+            }
+
+            intake.setVelocity(gamepad2.right_trigger * 1000);
             // Shooter controls
-            boolean dpadDown = gamepad1.dpad_down;
-            boolean dpadLeft = gamepad1.dpad_left;
-            boolean dpadRight = gamepad1.dpad_right;
+            boolean dpadDown = gamepad2.dpad_down;
+            boolean dpadLeft = gamepad2.dpad_left;
+            boolean dpadRight = gamepad2.dpad_right;
 
             // Toggle shooter on/off with dpad down (edge-triggered)
-            if (dpadDown && !prevDpadDown) {
-                shooterEnabled = !shooterEnabled;
-                if (! shooterEnabled) {
-                    shooterMotor.setPower(0);
-                    stopRumble();
-                } else {
-                    shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            if (gamepad2.dpadDownWasReleased()) {
+
+                if (shooterEnabled){
+                    shooterEnabled = false;
                 }
+
+                if (!shooterEnabled){
+                    shooterEnabled = true;
+                }
+
             }
 
             if (dpadLeft && !prevDpadLeft) {
@@ -129,8 +177,12 @@ public class TeamOfficial extends LinearOpMode {
 
             double actual = -shooterMotor.getVelocity();
 
-            shooterMotor.setPower(feedback*(targetShooterRPM-actual) + (actual/maxSpeed));
-
+            if (shooterEnabled) {
+                shooterMotor.setPower(feedback * (targetShooterRPM - actual) + (actual / maxSpeed));
+            }
+            if (!shooterEnabled){
+                shooterMotor.setPower(0);
+            }
 
             // Gate toggle on Y
             boolean yPressed = gamepad1.y;
@@ -163,12 +215,12 @@ public class TeamOfficial extends LinearOpMode {
     private void startContinuousRumble() {
         // Use a long rumble duration (10 seconds) - will be stopped when leaving tolerance
         // This avoids the issue of short rumbles getting lost
-        gamepad1.rumble(1.0, 1.0, 10000);
+        gamepad2.rumble(1.0, 1.0, 10000);
     }
 
     private void stopRumble() {
         // Stop any ongoing rumble
-        gamepad1.stopRumble();
+        gamepad2.stopRumble();
     }
 
     private void setGate(boolean open) {
