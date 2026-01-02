@@ -13,19 +13,15 @@ public class MecanumTeleop extends LinearOpMode {
     private DcMotorEx reverseintake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
-    double actualspeed;
     double driveSpeed;
     private double maxspeed = 2800;
     private double feedback = 0.001;
 
-    private double targetspeed = 1000;
-
-
     boolean wasPressedLastFrame = false;
 
-    boolean gateWasPressedLastFrame = false;
+    boolean gateWasPressedLastFrame = false; //satoru...
 
-    boolean gateOpen = false; //satoru ... suguru...
+    boolean gateOpen = false; //suguru...
     boolean shooterToggle = false;
 
     double power = 1400;

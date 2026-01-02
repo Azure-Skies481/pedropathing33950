@@ -20,15 +20,13 @@ public class FieldcenteredTest extends LinearOpMode {
     private DcMotorEx reverseintake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
-    double actualspeed;
     private double maxspeed = 2800;
     private double feedback = 0.001;
-    private double targetspeed = 1000;
     boolean wasPressedLastFrame = false;
     boolean gateWasPressedLastFrame = false; //Satoru...
     boolean gateOpen = false; //Suguru...
     boolean shooterToggle = false;
-    double power = 1500;
+    double power = 1400;
     double drivespeed;
 
 
@@ -39,8 +37,7 @@ public class FieldcenteredTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        drivespeed = 0.4;
-        drivespeed += 0.6 * gamepad1.right_trigger;
+
         // Declare our motors
         // Make sure your ID's match your configuration
         DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontleftMotor");
@@ -80,6 +77,9 @@ public class FieldcenteredTest extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
+            drivespeed = 0.4;
+            drivespeed += 0.6 * gamepad1.right_trigger;
+
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x;
             double rx = gamepad1.right_stick_x;
@@ -93,9 +93,11 @@ public class FieldcenteredTest extends LinearOpMode {
 
             double actualspeed = shooter.getVelocity();
             if (gamepad2.dpad_up){
-                power = power + 0.5;
+                power = 1400;
+            } else if (gamepad2.dpad_left){
+                power = 1250;
             } else if (gamepad2.dpad_down){
-                power = power - 0.5;
+                power = 1150;
             }
 
             if (gamepad2.right_bumper) {
@@ -108,7 +110,7 @@ public class FieldcenteredTest extends LinearOpMode {
             }
             if (gateOpen) {
                 //open
-                gate.setPosition(0.15);
+                gate.setPosition(0.5);
             } else {
                 //close
                 gate.setPosition(0.0);
