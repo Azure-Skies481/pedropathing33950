@@ -23,6 +23,7 @@ public class MecanumTeleop extends LinearOpMode {
 
     boolean gateOpen = false; //suguru...
     boolean shooterToggle = false;
+    boolean intakeUsedLastFrame = false;
 
     double power = 1400;
 
@@ -91,6 +92,8 @@ public class MecanumTeleop extends LinearOpMode {
                 power = 1150;
             }
 
+            if (intakeUsedLastFrame && gamepad2.right_trigger==0 && gateOpen) gate.setPosition(0.0);
+
             if (gamepad2.right_bumper) {
                 gateWasPressedLastFrame = true;
             } else {
@@ -108,6 +111,10 @@ public class MecanumTeleop extends LinearOpMode {
                 gate.setPosition(0.0);
             }
             //gate.setPosition(0.5);
+            if (intakeUsedLastFrame && gamepad2.right_trigger == 0) {
+                gateOpen = false;
+            }
+
 
 
             if (gamepad2.left_bumper) {
@@ -127,6 +134,7 @@ public class MecanumTeleop extends LinearOpMode {
 
             reverseintake.setVelocity(gamepad2.left_trigger * 1500);
             intake.setVelocity(gamepad2.right_trigger * -1500);
+            intakeUsedLastFrame = gamepad2.right_trigger > 0;
             telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
             telemetry.addData("Shooter Target Velocity", power);
             telemetry.addData("Gate Open?", gateOpen);
