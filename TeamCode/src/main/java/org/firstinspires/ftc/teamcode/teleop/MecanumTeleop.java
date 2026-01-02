@@ -28,7 +28,7 @@ public class MecanumTeleop extends LinearOpMode {
     boolean gateOpen = false; //satoru ... suguru...
     boolean shooterToggle = false;
 
-    double power = 1000;
+    double power = 1400;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -85,10 +85,14 @@ public class MecanumTeleop extends LinearOpMode {
 
             double actualspeed = shooter.getVelocity();
 
+
+
             if (gamepad2.dpad_up){
-                power = power + 2;
+                power = 1400;
+            } else if (gamepad2.dpad_left){
+                power = 1250;
             } else if (gamepad2.dpad_down){
-                power = power - 2;
+                power = 1150;
             }
 
             if (gamepad2.right_bumper) {
@@ -99,13 +103,15 @@ public class MecanumTeleop extends LinearOpMode {
                 }
                 gateWasPressedLastFrame = false;
             }
+
             if (gateOpen) {
                 //open
-                gate.setPosition(0.0);
+                gate.setPosition(0.5);
             } else {
                 //close
-                gate.setPosition(0.15);
+                gate.setPosition(0.0);
             }
+            //gate.setPosition(0.5);
 
 
             if (gamepad2.left_bumper) {
