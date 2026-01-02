@@ -101,10 +101,10 @@ public class MecanumTeleop extends LinearOpMode {
             }
             if (gateOpen) {
                 //open
-                gate.setPosition(0.15);
+                gate.setPosition(0.0);
             } else {
                 //close
-                gate.setPosition(0.0);
+                gate.setPosition(0.15);
             }
 
 
