@@ -14,8 +14,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class AutoFar extends LinearOpMode{
 
     private DcMotorEx intake = null;
-
-    private DcMotorEx reverseintake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
     private double maxspeed = 2800;
@@ -46,7 +44,12 @@ public class AutoFar extends LinearOpMode{
             frontRightMotor.setPower(power);
             backLeftMotor.setPower(power);
             backRightMotor.setPower(power);
+            if (Math.abs(error) <= 15) break;
         }
+        frontLeftMotor.setPower(0);
+        frontRightMotor.setPower(0);
+        backLeftMotor.setPower(0);
+        backRightMotor.setPower(0);
     }
     public void strafe(double amount, boolean left) {
         while (opModeIsActive()){
@@ -112,8 +115,13 @@ public class AutoFar extends LinearOpMode{
         //while (opModeIsActive()) shooter.setVelocity(1650);
 
         //gate.setPosition(0.5);
-
-        moveForward(1000);
+        shooter.setVelocity(1650);
+        moveForward(-200);
+        intake.setVelocity(1200);
+        Thread.sleep(3000);
+        intake.setVelocity(0);
+        shooter.setVelocity(0);
+        moveForward(-600);
         //turn(30);
         //while (opModeIsActive()) intake.setPower(0.5);
     }
