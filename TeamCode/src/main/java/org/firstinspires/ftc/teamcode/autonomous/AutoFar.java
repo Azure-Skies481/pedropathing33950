@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous
-public class Auto extends LinearOpMode{
+public class AutoFar extends LinearOpMode{
 
     private DcMotorEx intake = null;
 
@@ -102,13 +102,12 @@ public class Auto extends LinearOpMode{
         waitForStart();
         if (isStopRequested()) return;
 
-        //shooter.setPower(1);
+        while (opModeIsActive()) shooter.setVelocity(1650);
+
         //gate.setPosition(0.5);
 
         moveForward(100);
         //turn(30);
-        //intake.setPower(0.5);
-
-
+        //while (opModeIsActive()) intake.setPower(0.5);
     }
 }
