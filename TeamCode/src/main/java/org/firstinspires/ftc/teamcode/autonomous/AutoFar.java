@@ -32,10 +32,10 @@ public class AutoFar extends LinearOpMode{
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
 
-    IMU imu = hardwareMap.get(IMU.class, "imu");
-    IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-            RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-            RevHubOrientationOnRobot.UsbFacingDirection.UP));
+    //IMU imu = hardwareMap.get(IMU.class, "imu");
+    //IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+            //RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+            //RevHubOrientationOnRobot.UsbFacingDirection.UP));
     public void moveForward(double amount) {
         while (opModeIsActive()) {
             double position = (double) (frontLeftMotor.getCurrentPosition() + backLeftMotor.getCurrentPosition() +
@@ -58,10 +58,11 @@ public class AutoFar extends LinearOpMode{
             if (left) skibidi = skibidi * -1;
             frontLeftMotor.setPower(power * skibidi);
             frontRightMotor.setPower(power * -skibidi);
-            backLeftMotor.setPower(power * - skibidi);
+            backLeftMotor.setPower(power * -skibidi);
             backRightMotor.setPower(power * skibidi);
         }
     }
+    /*
 
     public void turn (double angle){
         while (opModeIsActive()){
@@ -75,10 +76,12 @@ public class AutoFar extends LinearOpMode{
         }
     }
 
+     */
+
 
     @Override
     public void runOpMode() throws InterruptedException {
-        imu.initialize(parameters);
+        //imu.initialize(parameters);
         frontLeftMotor = hardwareMap.dcMotor.get("frontleftMotor");
         backLeftMotor = hardwareMap.dcMotor.get("backleftMotor");
         frontRightMotor = hardwareMap.dcMotor.get("frontrightMotor");
@@ -89,24 +92,28 @@ public class AutoFar extends LinearOpMode{
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        frontLeftMotor.setTargetPosition(0);
+        frontRightMotor.setTargetPosition(0);
+        backLeftMotor.setTargetPosition(0);
+        backRightMotor.setTargetPosition(0);
+
         intake = hardwareMap.get(DcMotorEx.class, "intakemotor");
 
         shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        reverseintake.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         waitForStart();
         if (isStopRequested()) return;
 
-        while (opModeIsActive()) shooter.setVelocity(1650);
+        //while (opModeIsActive()) shooter.setVelocity(1650);
 
         //gate.setPosition(0.5);
 
-        moveForward(100);
+        moveForward(1000);
         //turn(30);
         //while (opModeIsActive()) intake.setPower(0.5);
     }

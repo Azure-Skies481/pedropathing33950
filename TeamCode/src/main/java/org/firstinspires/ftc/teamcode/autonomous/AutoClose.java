@@ -27,15 +27,17 @@ public class AutoClose extends LinearOpMode{
     double power = 1550;
     double drivespeed;
 
+    boolean aura = true;
+
     DcMotor frontLeftMotor;
     DcMotor backLeftMotor;
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
 
-    IMU imu = hardwareMap.get(IMU.class, "imu");
-    IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-            RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-            RevHubOrientationOnRobot.UsbFacingDirection.UP));
+    //IMU imu = hardwareMap.get(IMU.class, "imu");
+    //IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+    //RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+    //RevHubOrientationOnRobot.UsbFacingDirection.UP));
     public void moveForward(double amount) {
         while (opModeIsActive()) {
             double position = (double) (frontLeftMotor.getCurrentPosition() + backLeftMotor.getCurrentPosition() +
@@ -46,7 +48,12 @@ public class AutoClose extends LinearOpMode{
             frontRightMotor.setPower(power);
             backLeftMotor.setPower(power);
             backRightMotor.setPower(power);
+            if (Math.abs(error) <= 15) break;
         }
+        frontLeftMotor.setPower(0);
+        frontRightMotor.setPower(0);
+        backLeftMotor.setPower(0);
+        backRightMotor.setPower(0);
     }
     public void strafe(double amount, boolean left) {
         while (opModeIsActive()){
@@ -58,10 +65,11 @@ public class AutoClose extends LinearOpMode{
             if (left) skibidi = skibidi * -1;
             frontLeftMotor.setPower(power * skibidi);
             frontRightMotor.setPower(power * -skibidi);
-            backLeftMotor.setPower(power * - skibidi);
+            backLeftMotor.setPower(power * -skibidi);
             backRightMotor.setPower(power * skibidi);
         }
     }
+    /*
 
     public void turn (double angle){
         while (opModeIsActive()){
@@ -75,10 +83,12 @@ public class AutoClose extends LinearOpMode{
         }
     }
 
+     */
+
 
     @Override
     public void runOpMode() throws InterruptedException {
-        imu.initialize(parameters);
+        //imu.initialize(parameters);
         frontLeftMotor = hardwareMap.dcMotor.get("frontleftMotor");
         backLeftMotor = hardwareMap.dcMotor.get("backleftMotor");
         frontRightMotor = hardwareMap.dcMotor.get("frontrightMotor");
@@ -89,27 +99,52 @@ public class AutoClose extends LinearOpMode{
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        /*
+        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+
+         */
+        frontLeftMotor.setTargetPosition(0);
+        frontRightMotor.setTargetPosition(0);
+        backLeftMotor.setTargetPosition(0);
+        backRightMotor.setTargetPosition(0);
+
+
+
         intake = hardwareMap.get(DcMotorEx.class, "intakemotor");
 
         shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
 
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        reverseintake.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake.setDirection(DcMotorSimple.Direction.FORWARD);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         waitForStart();
         if (isStopRequested()) return;
-        moveForward(-100);
-        while(opModeIsActive())shooter.setVelocity(1200);
+        telemetry.addData("skibidi", 1);
+        telemetry.update();
+        moveForward(300);
+        telemetry.addData("a", 2);
+        telemetry.update();
+        Thread.sleep(700);
+        shooter.setVelocity(1200);
+        telemetry.addData("b", 3);
+        telemetry.update();
+        Thread.sleep(3000);
         gate.setPosition(0.5);
-        while(opModeIsActive())intake.setPower(1.0);
-        wait(10000);
-        while(opModeIsActive())intake.setPower(0.0);
-        //turn(30);
-        //intake.setPower(0.5);
-
-
+        telemetry.addData("c", 4);
+        telemetry.update();
+        intake.setPower(1.0);
+        telemetry.addData("d", 5);
+        telemetry.update();
+        Thread.sleep(10000);
+        shooter.setPower(0);
+        intake.setPower(0);
+        telemetry.addData("e", 6);
+        telemetry.update();
     }
 }
