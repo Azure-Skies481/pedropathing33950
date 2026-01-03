@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.autonomous;
 
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -34,11 +35,12 @@ public class AutoClose extends LinearOpMode{
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
 
-    IMU imu = hardwareMap.get(IMU.class, "imu");
+    IMU imu = null;
     IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-    RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-    RevHubOrientationOnRobot.UsbFacingDirection.UP));
+            RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+            RevHubOrientationOnRobot.UsbFacingDirection.UP));
     public void moveForward(double amount) {
+        resetEncoders();
         while (opModeIsActive()) {
             double position = (double) (frontLeftMotor.getCurrentPosition() + backLeftMotor.getCurrentPosition() +
                     frontRightMotor.getCurrentPosition() + backRightMotor.getCurrentPosition()) / 4;
@@ -48,14 +50,27 @@ public class AutoClose extends LinearOpMode{
             frontRightMotor.setPower(power);
             backLeftMotor.setPower(power);
             backRightMotor.setPower(power);
-            if (Math.abs(error) <= 15) break;
+            if (Math.abs(error) <= 15 && frontLeftMotor.getPower()<=0.5) break;
         }
         frontLeftMotor.setPower(0);
         frontRightMotor.setPower(0);
         backLeftMotor.setPower(0);
         backRightMotor.setPower(0);
     }
+
+    public void resetEncoders() {
+        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
     public void strafe(double amount, boolean left) {
+        resetEncoders();
         while (opModeIsActive()){
             double position = (double) (frontLeftMotor.getCurrentPosition() + backLeftMotor.getCurrentPosition() +
                     frontRightMotor.getCurrentPosition() + backRightMotor.getCurrentPosition()) / 4;
@@ -69,44 +84,44 @@ public class AutoClose extends LinearOpMode{
             backRightMotor.setPower(power * skibidi);
         }
     }
-    /*
+
 
     public void turn (double angle){
+        imu.initialize(parameters);
+        imu.resetYaw();
+        resetEncoders();
         while (opModeIsActive()){
-            double imuAngle = imu.getRobotYawPitchRollAngles().getYaw();
+            double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
             double error = angle - imuAngle;
-            double power = 0.01*error;
-            frontLeftMotor.setPower(power);
-            backLeftMotor.setPower(power);
+            double power = 0.02*error;
+            frontLeftMotor.setPower(-power);
+            backLeftMotor.setPower(-power);
             frontRightMotor.setPower(power);
             backRightMotor.setPower(power);
+
+            telemetry.addData("imu: ", imuAngle);
+            telemetry.addData("error: ", error);
+            telemetry.update();
+            if (Math.abs(error) <= 1 && frontLeftMotor.getPower()<=0.3) break;
         }
     }
-
-     */
 
 
     @Override
     public void runOpMode() throws InterruptedException {
-        //imu.initialize(parameters);
         frontLeftMotor = hardwareMap.dcMotor.get("frontleftMotor");
         backLeftMotor = hardwareMap.dcMotor.get("backleftMotor");
         frontRightMotor = hardwareMap.dcMotor.get("frontrightMotor");
         backRightMotor = hardwareMap.dcMotor.get("backrightMotor");
+
+        imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(parameters);
 
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        /*
-        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-
-         */
         frontLeftMotor.setTargetPosition(0);
         frontRightMotor.setTargetPosition(0);
         backLeftMotor.setTargetPosition(0);
@@ -123,10 +138,11 @@ public class AutoClose extends LinearOpMode{
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+
         waitForStart();
         if (isStopRequested()) return;
-        //telemetry.addData("skibidi", 1);
-        //telemetry.update();
+        telemetry.addData("skibidi", 1);
+        telemetry.update();
         // telemetry.addData("a", 2);
         // telemetry.update();
         // telemetry.addData("b", 3);
@@ -136,19 +152,25 @@ public class AutoClose extends LinearOpMode{
         //telemetry.addData("d", 5);
         //telemetry.update();
         //telemetry.addData("e", 6);
-        //telemetry.update();
-        moveForward(320);
-        Thread.sleep(700);
-        shooter.setVelocity(1200);
-        Thread.sleep(3000);
+        //telemetry.update();4
+
+
+        /*
+        moveForward(420);
+        shooter.setVelocity(1250);
+
+        Thread.sleep(5000);
         gate.setPosition(0.5);
-        intake.setPower(1.0);
-        Thread.sleep(10000);
+        Thread.sleep(400);
+        intake.setPower(1);
+        Thread.sleep(2000);
         shooter.setPower(0);
         intake.setPower(0);
+        resetEncoders();
         moveForward(400);
 
-
+         */
+        turn(90);
 
     }
 }
