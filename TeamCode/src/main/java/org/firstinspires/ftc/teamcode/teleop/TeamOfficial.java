@@ -25,8 +25,8 @@ public class TeamOfficial extends LinearOpMode {
     private static final double BOOST_MULT = 1.15;
 
     // Servo gate positions
-    private static final double GATE_OPEN = 0.1;
-    private static final double GATE_CLOSED = 0.8;
+    private static final double GATE_OPEN = 0.9;
+    private static final double GATE_CLOSED = 0.45;
     private boolean shooterEnabled = false;
 
     // Edge/debounce
@@ -68,7 +68,7 @@ public class TeamOfficial extends LinearOpMode {
 
         // Shooter (flywheel) motor
         DcMotorEx shooterMotor = hardwareMap.get(DcMotorEx.class, "shootermotor");
-        shooterMotor. setDirection(DcMotorSimple. Direction.REVERSE);
+        shooterMotor.setDirection(DcMotorSimple. Direction.REVERSE);
         shooterMotor.setMode(DcMotor.RunMode. STOP_AND_RESET_ENCODER);
         shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -207,7 +207,7 @@ public class TeamOfficial extends LinearOpMode {
 //            telemetry. addData("kI", Math.round(CFG_kI * 10000.0) / 10000.0);
 //            telemetry.addData("kD", Math.round(CFG_kD * 100.0) / 100.0);
 //            telemetry.addData("kF", Math.round(CFG_kF * 100.0) / 100.0);
-//            telemetry. addData("Gate", gateOpen ?  "OPEN" :  "CLOSED");
+            telemetry. addData("Gate", gateOpen ?  "OPEN" :  "CLOSED");
             telemetry. update();
         }
     }

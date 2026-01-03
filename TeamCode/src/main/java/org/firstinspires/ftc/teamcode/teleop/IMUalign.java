@@ -43,12 +43,12 @@ public class IMUalign extends LinearOpMode {
     private double startHeadingDeg = 0.0;
 
     // Turn-to-heading gains (PD to reduce oscillation)
-    private static final double ALIGN_KP = 0.010;
-    private static final double ALIGN_KD = 0.0025;
-    private static final double ALIGN_MIN_PWR = 0.05;
-    private static final double ALIGN_MAX_PWR = 0.35;
-    private static final double ALIGN_TOL_DEG = 5.0;
-    private static final double ALIGN_STOP_RATE_DPS = 5.0;
+    private static final double ALIGN_KP = 0.005;
+    private static final double ALIGN_KD = 0.5;
+    private static final double ALIGN_MIN_PWR = 0.75;
+    private static final double ALIGN_MAX_PWR = 1.0;
+    private static final double ALIGN_TOL_DEG = 15.0;
+    private static final double ALIGN_STOP_RATE_DPS = 8.0;
 
     private double prevErrorDeg = 0.0;
     private long prevTimeNanos = 0;
