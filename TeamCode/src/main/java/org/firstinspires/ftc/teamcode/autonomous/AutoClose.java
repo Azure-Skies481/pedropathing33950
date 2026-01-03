@@ -34,10 +34,10 @@ public class AutoClose extends LinearOpMode{
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
 
-    //IMU imu = hardwareMap.get(IMU.class, "imu");
-    //IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-    //RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-    //RevHubOrientationOnRobot.UsbFacingDirection.UP));
+    IMU imu = hardwareMap.get(IMU.class, "imu");
+    IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+    RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+    RevHubOrientationOnRobot.UsbFacingDirection.UP));
     public void moveForward(double amount) {
         while (opModeIsActive()) {
             double position = (double) (frontLeftMotor.getCurrentPosition() + backLeftMotor.getCurrentPosition() +
@@ -125,26 +125,30 @@ public class AutoClose extends LinearOpMode{
 
         waitForStart();
         if (isStopRequested()) return;
-        telemetry.addData("skibidi", 1);
-        telemetry.update();
-        moveForward(300);
-        telemetry.addData("a", 2);
-        telemetry.update();
+        //telemetry.addData("skibidi", 1);
+        //telemetry.update();
+        // telemetry.addData("a", 2);
+        // telemetry.update();
+        // telemetry.addData("b", 3);
+        //telemetry.update();
+        // telemetry.addData("c", 4);
+        // telemetry.update();
+        //telemetry.addData("d", 5);
+        //telemetry.update();
+        //telemetry.addData("e", 6);
+        //telemetry.update();
+        moveForward(320);
         Thread.sleep(700);
         shooter.setVelocity(1200);
-        telemetry.addData("b", 3);
-        telemetry.update();
         Thread.sleep(3000);
         gate.setPosition(0.5);
-        telemetry.addData("c", 4);
-        telemetry.update();
         intake.setPower(1.0);
-        telemetry.addData("d", 5);
-        telemetry.update();
         Thread.sleep(10000);
         shooter.setPower(0);
         intake.setPower(0);
-        telemetry.addData("e", 6);
-        telemetry.update();
+        moveForward(400);
+
+
+
     }
 }
