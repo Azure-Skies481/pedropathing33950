@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
@@ -36,31 +35,27 @@ public class IMUalign extends LinearOpMode {
     private boolean prevDpadDown = false;
     private boolean prevDpadLeft = false;
     private boolean prevDpadRight = false;
-    private long lastDpadLeftMs = 0;
-    private long lastDpadRightMs = 0;
-
-    // Gate toggle
-    private boolean gateOpen = false;
     private boolean prevY = false;
 
-    // Rumble state
-    private boolean wasAtTarget = false;
-    private boolean rumbleActive = false;
-
-    // Heading hold
+    // Heading align toggle
     private boolean aligningToStart = false;
     private boolean prevX = false;
     private double startHeadingDeg = 0.0;
 
-    // Turn-to-heading gains
-    private static final double ALIGN_KP = 0.00004;      // proportional gain
-    private static final double ALIGN_MIN_PWR = 0.08;  // minimum turn power to overcome static friction
-    private static final double ALIGN_MAX_PWR = 0.45;  // clamp turn power
-    private static final double ALIGN_TOL_DEG = 10.5;   // stop when within tolerance (degrees)
+    // Turn-to-heading gains (PD to reduce oscillation)
+    private static final double ALIGN_KP = 0.010;
+    private static final double ALIGN_KD = 0.0025;
+    private static final double ALIGN_MIN_PWR = 0.05;
+    private static final double ALIGN_MAX_PWR = 0.35;
+    private static final double ALIGN_TOL_DEG = 5.0;
+    private static final double ALIGN_STOP_RATE_DPS = 5.0;
+
+    private double prevErrorDeg = 0.0;
+    private long prevTimeNanos = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        // Drivetrain motors (unchanged)
+        // Drivetrain motors
         DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontleftMotor");
         DcMotor backLeftMotor = hardwareMap.dcMotor.get("backleftMotor");
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontrightMotor");
@@ -68,9 +63,9 @@ public class IMUalign extends LinearOpMode {
 
         double maxSpeed = 2570;
         double feedback = 0.003;
-        double targetShooterRPM = 650;
+        double targetShooterRPM = 950;
 
-        // Directions (match dualmotor style)
+        // Directions (from provided teleop)
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -91,36 +86,49 @@ public class IMUalign extends LinearOpMode {
         setGate(gateOpen);
         shooterEnabled = false;
 
-        // IMU init (Expansion Hub IMU, logo left, USB up)
+        // IMU init (Expansion Hub IMU, logo LEFT, USB UP)
         imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters imuParams = new IMU.Parameters(
-                new RevHubOrientationOnRobot(
-                        RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                        RevHubOrientationOnRobot.UsbFacingDirection.UP
-                )
-        );
-        imu.initialize(imuParams);
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP));
+        imu.initialize(parameters);
 
         waitForStart();
         if (isStopRequested()) return;
 
-        // Capture starting heading and enable shooter
+        // Capture start heading and enable shooter
         startHeadingDeg = getHeadingDeg();
         aligningToStart = false;
         shooterEnabled = true;
+        prevErrorDeg = 0.0;
+        prevTimeNanos = System.nanoTime();
 
         while (opModeIsActive()) {
-            long nowMs = System.currentTimeMillis();
+            long nowNanos = System.nanoTime();
 
             // --- Drive (with align override on rotation) ---
             double y = -gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y);
             double x = gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x);
             double rxDriver = Math.pow(gamepad1.right_stick_x, 3.0);
 
-            // Heading align trigger
+            if (gamepad1.options) {
+                imu.resetYaw();
+                startHeadingDeg = 0.0; // optional reset reference
+            }
+
+            double slowMode = 0.5;
+            if (gamepad1.left_stick_button) {
+                slowMode = 1.0;
+            }
+
+            // Align toggle on X
             boolean xPressed = gamepad1.x;
             if (xPressed && !prevX) {
-                aligningToStart = true;
+                aligningToStart = !aligningToStart;
+                if (aligningToStart) {
+                    prevErrorDeg = angleWrapDeg(startHeadingDeg - getHeadingDeg());
+                    prevTimeNanos = nowNanos;
+                }
             }
             prevX = xPressed;
 
@@ -128,17 +136,26 @@ public class IMUalign extends LinearOpMode {
             if (aligningToStart) {
                 double heading = getHeadingDeg();
                 double error = angleWrapDeg(startHeadingDeg - heading);
-                if (Math.abs(error) <= ALIGN_TOL_DEG) {
+                double dt = (nowNanos - prevTimeNanos) / 1e9;
+                if (dt <= 0) dt = 1e-3;
+                double dError = (error - prevErrorDeg) / dt;
+
+                double turnCmd = ALIGN_KP * error + ALIGN_KD * dError;
+                turnCmd = Range.clip(turnCmd, -ALIGN_MAX_PWR, ALIGN_MAX_PWR);
+                if (Math.abs(turnCmd) < ALIGN_MIN_PWR) {
+                    turnCmd = Math.copySign(ALIGN_MIN_PWR, turnCmd);
+                }
+                rx = turnCmd;
+
+                boolean withinTol = Math.abs(error) <= ALIGN_TOL_DEG;
+                boolean slowRate = Math.abs(dError) <= ALIGN_STOP_RATE_DPS;
+                if (withinTol && slowRate) {
                     aligningToStart = false;
                     rx = 0.0;
-                } else {
-                    double turnCmd = ALIGN_KP * error;
-                    turnCmd = Range.clip(turnCmd, -ALIGN_MAX_PWR, ALIGN_MAX_PWR);
-                    if (Math.abs(turnCmd) < ALIGN_MIN_PWR) {
-                        turnCmd = Math.copySign(ALIGN_MIN_PWR, turnCmd);
-                    }
-                    rx = turnCmd;
                 }
+
+                prevErrorDeg = error;
+                prevTimeNanos = nowNanos;
             } else {
                 rx = rxDriver;
             }
@@ -149,42 +166,58 @@ public class IMUalign extends LinearOpMode {
             double frontRightPower = (y - x - rx) / denominator;
             double backRightPower = (y + x - rx) / denominator;
 
-            frontLeftMotor.setPower(frontLeftPower);
-            backLeftMotor.setPower(backLeftPower);
-            frontRightMotor.setPower(frontRightPower);
-            backRightMotor.setPower(backRightPower);
+            frontLeftMotor.setPower(slowMode * frontLeftPower);
+            backLeftMotor.setPower(slowMode * backLeftPower);
+            frontRightMotor.setPower(slowMode * frontRightPower);
+            backRightMotor.setPower(slowMode * backRightPower);
 
-            // Intake control
-            intake.setVelocity(gamepad1.right_trigger * 1000);
+            // Bumpers rotate in place (manual)
+            if (gamepad1.right_bumper || gamepad2.right_bumper) {
+                frontLeftMotor.setPower(0.2);
+                backLeftMotor.setPower(0.2);
+                frontRightMotor.setPower(-0.2);
+                backRightMotor.setPower(-0.2);
+            }
+            if (gamepad1.left_bumper || gamepad2.left_bumper) {
+                frontLeftMotor.setPower(-0.2);
+                backLeftMotor.setPower(-0.2);
+                frontRightMotor.setPower(0.2);
+                backRightMotor.setPower(0.2);
+            }
 
-            // Shooter controls
-            boolean dpadDown = gamepad1.dpad_down;
-            boolean dpadLeft = gamepad1.dpad_left;
-            boolean dpadRight = gamepad1.dpad_right;
+            // Intake control (as provided)
+            if (gamepad2.right_trigger > 0.8) {
+                intake.setVelocity(1000);
+            }
+            if (gamepad2.left_trigger > 0.8) {
+                intake.setVelocity(-1000);
+            }
+            intake.setVelocity(gamepad2.right_trigger * 1000);
 
-            // Toggle shooter on/off with dpad down (edge-triggered)
+            // Shooter controls (gamepad2)
+            boolean dpadDown = gamepad2.dpad_down;
+            boolean dpadLeft = gamepad2.dpad_left;
+            boolean dpadRight = gamepad2.dpad_right;
+
             if (dpadDown && !prevDpadDown) {
                 shooterEnabled = !shooterEnabled;
-                if (!shooterEnabled) {
-                    shooterMotor.setPower(0);
-                    stopRumble();
-                } else {
-                    shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                }
             }
 
             if (dpadLeft && !prevDpadLeft) {
                 targetShooterRPM -= 50;
             }
-
             if (dpadRight && !prevDpadRight) {
                 targetShooterRPM += 50;
             }
 
             double actual = -shooterMotor.getVelocity();
-            shooterMotor.setPower(feedback * (targetShooterRPM - actual) + (actual / maxSpeed));
+            if (shooterEnabled) {
+                shooterMotor.setPower(feedback * (targetShooterRPM - actual) + (actual / maxSpeed));
+            } else {
+                shooterMotor.setPower(0);
+            }
 
-            // Gate toggle on Y
+            // Gate toggle on Y (gamepad1)
             boolean yPressed = gamepad1.y;
             if (yPressed && !prevY) {
                 gateOpen = !gateOpen;
@@ -210,26 +243,21 @@ public class IMUalign extends LinearOpMode {
     }
 
     private double getHeadingDeg() {
-        // Yaw is the robot heading; IMU returns radians or degrees as requested
         return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
     }
 
     private double angleWrapDeg(double angle) {
-        // Normalize to (-180, 180]
         while (angle > 180) angle -= 360;
         while (angle <= -180) angle += 360;
         return angle;
     }
 
     private void startContinuousRumble() {
-        // Use a long rumble duration (10 seconds) - will be stopped when leaving tolerance
-        // This avoids the issue of short rumbles getting lost
-        gamepad1.rumble(1.0, 1.0, 10000);
+        gamepad2.rumble(1.0, 1.0, 10000);
     }
 
     private void stopRumble() {
-        // Stop any ongoing rumble
-        gamepad1.stopRumble();
+        gamepad2.stopRumble();
     }
 
     private void setGate(boolean open) {
@@ -237,4 +265,7 @@ public class IMUalign extends LinearOpMode {
             servoGate.setPosition(open ? GATE_OPEN : GATE_CLOSED);
         }
     }
+
+    // State for gate
+    private boolean gateOpen = false;
 }
