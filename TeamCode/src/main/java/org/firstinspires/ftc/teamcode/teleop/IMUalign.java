@@ -27,8 +27,8 @@ public class IMUalign extends LinearOpMode {
     private static final double BOOST_MULT = 1.15;
 
     // Servo gate positions
-    private static final double GATE_OPEN = 0.1;
-    private static final double GATE_CLOSED = 0.8;
+    private static final double GATE_OPEN = 0.9;
+    private static final double GATE_CLOSED = 0.45;
     private boolean shooterEnabled = false;
 
     // Edge/debounce
@@ -116,11 +116,7 @@ public class IMUalign extends LinearOpMode {
                 startHeadingDeg = 0.0; // optional reset reference
             }
 
-            double slowMode = 0.5;
-            if (gamepad1.left_stick_button) {
-                slowMode = 1.0;
-            }
-
+            double slowMode = gamepad1.right_trigger+0.5;
             // Align toggle on X
             boolean xPressed = gamepad1.x;
             if (xPressed && !prevX) {

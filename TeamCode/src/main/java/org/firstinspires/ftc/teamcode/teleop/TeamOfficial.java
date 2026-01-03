@@ -110,9 +110,8 @@ public class TeamOfficial extends LinearOpMode {
             // but only if at least one is out of the range [-1, 1]
             double slowMode = 0.5;
 
-            if (gamepad1.left_stick_button) {
-                slowMode = 1;
-            }
+            slowMode = 0.5 + gamepad1.right_trigger;
+
 
             double denominator = (Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1));
             double frontLeftPower = (y + x + rx) / denominator;
