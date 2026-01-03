@@ -29,12 +29,16 @@
 
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 
 /*
@@ -71,11 +75,12 @@ public class AutoTesting extends LinearOpMode {
     private DcMotorEx         frontrightMotor  = null;
     private DcMotorEx         backleftMotor   = null;
     private DcMotorEx         backrightMotor  = null;
-    private DcMotorEx intake = null;
-    private Servo servoGate = null;
+    DcMotorEx intake = null;
+    Servo servoGate = null;
     double maxSpeed = 2570;
     double feedback = 0.003;
     double targetShooterRPM = 950;
+    IMU imu;
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
     // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
@@ -94,7 +99,7 @@ public class AutoTesting extends LinearOpMode {
         DcMotorEx shooterMotor = hardwareMap.get(DcMotorEx.class, "shootermotor");
         servoGate = hardwareMap.get(Servo.class, "servogate");
         intake = hardwareMap. get(DcMotorEx.class, "intakemotor");
-
+        imu = hardwareMap.get(IMU.class, "imu");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
@@ -104,6 +109,9 @@ public class AutoTesting extends LinearOpMode {
         frontrightMotor.setDirection(DcMotorEx.Direction.REVERSE);
         backrightMotor.setDirection(DcMotorEx.Direction.FORWARD);
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP));
 
         frontleftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         frontrightMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -118,6 +126,8 @@ public class AutoTesting extends LinearOpMode {
         backleftMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        imu.initialize(parameters);
+
         // Send telemetry message to indicate successful Encoder reset
         telemetry.addData("Starting at",  "%7d :%7d :%7d :%7d",
                 frontrightMotor.getCurrentPosition(),
@@ -126,6 +136,7 @@ public class AutoTesting extends LinearOpMode {
                 backrightMotor.getCurrentPosition());
 
         telemetry.update();
+        imu.resetYaw();
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -143,6 +154,7 @@ public class AutoTesting extends LinearOpMode {
         sleep(2000);
         Strafing(100);
         sleep(1000);  // pause to display final telemetry message.
+        turn(90);
 
         frontleftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         frontrightMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -233,5 +245,24 @@ public class AutoTesting extends LinearOpMode {
         frontrightMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         backrightMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         backleftMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    public void turn(double desiredTurn){
+        while (opModeIsActive()){
+            double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+            double difference = desiredTurn - botHeading;
+            double power = difference * 0.01;
+
+            frontleftMotor.setPower(-power);
+            frontrightMotor.setPower(power);
+            backleftMotor.setPower(-power);
+            backrightMotor.setPower(power);
+
+            float currentVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate;
+            if ((Math.abs(difference) <= 5)&&(Math.abs(currentVelocity) <= 1)){
+                telemetry.addData("Turn's","done");
+                break;
+            }
+        }
     }
 }
