@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous
-public class AutoFar extends LinearOpMode{
+public class AutoFarRed extends LinearOpMode{
 
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
