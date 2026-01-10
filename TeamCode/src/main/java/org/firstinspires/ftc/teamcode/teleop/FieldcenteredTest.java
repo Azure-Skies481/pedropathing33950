@@ -29,31 +29,6 @@ public class FieldcenteredTest extends LinearOpMode {
     double power = 1400;
     double drivespeed;
 
-    private boolean prevDpadDown = false;
-    private boolean prevDpadLeft = false;
-    private boolean prevDpadRight = false;
-    private boolean prevY = false;
-
-    // Heading align toggle
-    private boolean aligningToStart = false;
-    private boolean prevX = false;
-    private double startHeadingDeg = 0.0;
-
-    // Turn-to-heading gains (PD to reduce oscillation)
-    private static final double ALIGN_KP = 0.005;
-    private static final double ALIGN_KD = 0.5;
-    private static final double ALIGN_MIN_PWR = 0.75;
-    private static final double ALIGN_MAX_PWR = 1.0;
-    private static final double ALIGN_TOL_DEG = 15.0;
-    private static final double ALIGN_STOP_RATE_DPS = 8.0;
-
-    private double prevErrorDeg = 0.0;
-    private long prevTimeNanos = 0;
-
-
-
-
-
     @Override
     public void runOpMode() throws InterruptedException {
 
