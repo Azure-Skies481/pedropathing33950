@@ -69,6 +69,7 @@ public class AutoClose extends LinearOpMode{
         backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
+    // positive = front. negative = back
     public void strafe(double amount, boolean left) {
         resetEncoders();
         while (opModeIsActive()){
@@ -84,6 +85,7 @@ public class AutoClose extends LinearOpMode{
             backRightMotor.setPower(power * skibidi);
         }
     }
+    // positive = right. negative = left
 
 
     public void turn (double angle){
@@ -106,6 +108,7 @@ public class AutoClose extends LinearOpMode{
             if (Math.abs(error) <= 1 && velocity<=0.3) break;
         }
     }
+    // positive = left. negative = right
 
 
     @Override
@@ -169,6 +172,8 @@ public class AutoClose extends LinearOpMode{
         intake.setPower(0);
         Thread.sleep(1000);
         intake.setPower(1);
+
+
         Thread.sleep(1000);
         intake.setPower(0);
         shooter.setPower(0);
