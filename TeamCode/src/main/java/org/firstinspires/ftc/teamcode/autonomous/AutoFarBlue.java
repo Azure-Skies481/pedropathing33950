@@ -117,4 +117,12 @@ public class AutoFarBlue extends LinearOpMode {
 
         waitForStart();
         if (isStopRequested()) return;
+        shooter.setVelocity(1650);
+        gate.setPosition(0.5);
+        Thread.sleep(1000);
+        intake.setVelocity(-1200);
+        Thread.sleep(3000);
+        intake.setVelocity(0);
+        shooter.setVelocity(0);
+        moveForward(-350);
     }}

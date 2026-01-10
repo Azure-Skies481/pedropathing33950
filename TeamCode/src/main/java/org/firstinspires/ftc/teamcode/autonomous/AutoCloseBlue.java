@@ -16,8 +16,8 @@ public class AutoCloseBlue extends LinearOpMode {
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
-    private double maxspeed = 2800;
-    private double feedback = 0.001;
+    //private double maxspeed = 2800;
+    //private double feedback = 0.001;
     boolean wasPressedLastFrame = false;
     boolean gateWasPressedLastFrame = false; //Satoru...
     boolean gateOpen = false; //Suguru...
@@ -83,7 +83,11 @@ public class AutoCloseBlue extends LinearOpMode {
             telemetry.addData("imu: ", imuAngle);
             telemetry.addData("error: ", error);
             telemetry.update();
-            if (error <= 1 && velocity<=0.3) break;
+            if (error <= 1 && velocity<=0.3) {
+                telemetry.addData("Skibidi", "TurnFin");
+                telemetry.update();
+                break;
+            }
         }
     }
 
@@ -117,5 +121,71 @@ public class AutoCloseBlue extends LinearOpMode {
 
         waitForStart();
         if (isStopRequested()) return;
+
+
+        //Move back
+        moveForward(1200);
+
+        //shoot setup
+        shooter.setVelocity(1250);
+        Thread.sleep(5000);
+        gate.setPosition(0.5);
+        Thread.sleep(400);
+
+        //align back
+        turn (0);
+
+        //shoot
+        intake.setPower(1);
+        Thread.sleep(100);
+
+        //recharge
+        intake.setPower(0);
+        Thread.sleep(1000);
+
+        //shoot again
+        intake.setPower(1);
+        Thread.sleep(1000);
+
+        //disable
+        intake.setPower(0);
+        shooter.setPower(0);
+
+        //move out
+        turn(-85);
+        moveForward(700);
+
+        /*
+
+        //collect extra balls
+        intake.setPower(1);
+        moveForward(400);
+
+        //back into zone
+        moveForward(-1100);
+
+        //turn
+        turn(85);
+
+        //fire!!!
+        intake.setPower(1);
+        Thread.sleep(100);
+
+        //recharge
+        intake.setPower(0);
+        Thread.sleep(1000);
+
+        //Fire Again
+        intake.setPower(1);
+        Thread.sleep(1000);
+
+        //disable
+        intake.setPower(0);
+        shooter.setPower(0);
+
+        //move out
+        turn(-85);
+        moveForward(700);
+         */
     }
 }
