@@ -124,17 +124,28 @@ public class AutoFarRed extends LinearOpMode{
         //while (opModeIsActive()) shooter.setVelocity(1650);
 
         //gate.setPosition(0.5);
-        shooter.setVelocity(1700);
+        shooter.setVelocity(1650);
         Thread.sleep(1500);
         gate.setPosition(0.5);
         Thread.sleep(1000);
-        intake.setVelocity(-700);
-        Thread.sleep(500);
-        intake.setVelocity(0);
-        Thread.sleep(1000);
         intake.setVelocity(-500);
+        Thread.sleep(1000);
+        if (shooter.getVelocity() <= 1600){
+            intake.setVelocity(0);
+            Thread.sleep(1000);
+            if (shooter.getVelocity() >= 1625){
+                intake.setVelocity(-500);
+            }
+            else{
+                Thread.sleep(1000);
+                intake.setVelocity(-500);
+            }
+        }
         Thread.sleep(3000);
         intake.setVelocity(0);
+//        Thread.sleep(1000);
+//        intake.setVelocity(-500);
+//        Thread.sleep(3000);
         shooter.setVelocity(0);
         moveForward(-350);
         //turn(30);
