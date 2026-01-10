@@ -128,11 +128,11 @@ public class AutoFar extends LinearOpMode{
         Thread.sleep(1500);
         gate.setPosition(0.5);
         Thread.sleep(1000);
-        intake.setVelocity(-1200);
+        intake.setVelocity(-700);
         Thread.sleep(500);
         intake.setVelocity(0);
         Thread.sleep(1000);
-        intake.setVelocity(-1200);
+        intake.setVelocity(-500);
         Thread.sleep(3000);
         intake.setVelocity(0);
         shooter.setVelocity(0);
