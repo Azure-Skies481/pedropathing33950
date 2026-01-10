@@ -68,8 +68,8 @@ public class MecanumTeleop extends LinearOpMode {
 
 
             // --- Drive (unchanged) ---
-            double y = -gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y);
-            double x = gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x);
+            double y = gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y);
+            double x = -gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x);
             double rx = Math.pow(gamepad1.right_stick_x, 3.0);
 
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
@@ -137,7 +137,7 @@ public class MecanumTeleop extends LinearOpMode {
 
             intake.setPower(gamepad2.right_trigger * -0.5 + gamepad2.left_trigger);
             intakeUsedLastFrame = gamepad2.right_trigger > 0;
-            telemetry.addData("Shooter Real Velocity", shooter.getVelocity() * 28);
+            telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
             telemetry.addData("Shooter Target Velocity", power);
             telemetry.addData("Gate Open?", gateOpen);
             telemetry.update();

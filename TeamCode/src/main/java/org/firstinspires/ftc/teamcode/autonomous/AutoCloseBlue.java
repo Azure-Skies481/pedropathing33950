@@ -124,7 +124,7 @@ public class AutoCloseBlue extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
-
+        /*
         //Move back
         moveForward(1200);
 
@@ -157,7 +157,7 @@ public class AutoCloseBlue extends LinearOpMode {
         turn(-85);
         moveForward(700);
 
-        /*
+
 
         //collect extra balls
         intake.setPower(1);
@@ -189,5 +189,24 @@ public class AutoCloseBlue extends LinearOpMode {
         turn(-85);
         moveForward(700);
          */
+
+        moveForward(1100);
+        shooter.setVelocity(1250);
+
+        Thread.sleep(3500);
+        gate.setPosition(0.5);
+        Thread.sleep(400);
+        turn (0);
+        intake.setPower(1);
+        Thread.sleep(100);
+        intake.setPower(0);
+        Thread.sleep(1000);
+        intake.setPower(1);
+        Thread.sleep(1000);
+        intake.setPower(0);
+        shooter.setPower(0);
+        moveForward(250);
+        turn(-85);
+        moveForward(700);
     }
 }

@@ -117,14 +117,41 @@ public class AutoFarBlue extends LinearOpMode {
 
         waitForStart();
         if (isStopRequested()) return;
-        shooter.setVelocity(1650);
+        //while (opModeIsActive()) shooter.setVelocity(1650);
+
+        //gate.setPosition(0.5);
+        shooter.setVelocity(1625);
+        Thread.sleep(1500);
         gate.setPosition(0.5);
         Thread.sleep(1000);
-        telemetry.addData("ShooterVelocity", shooter.getVelocity());
-        telemetry.update();
-        intake.setVelocity(-1200);
-        Thread.sleep(3000);
+        intake.setVelocity(-500);
+        Thread.sleep(1000);
         intake.setVelocity(0);
+        Thread.sleep(2000);
+        intake.setVelocity(-500);
+        Thread.sleep(1500);
+        intake.setVelocity(0);
+
+
+        /*
+        if (shooter.getVelocity() <= shooterPower-25){
+            intake.setVelocity(0);
+            Thread.sleep(shootTwoPause);
+            if (shooter.getVelocity() >= shooterPower){
+                intake.setVelocity(-500);
+            }
+            else{
+                Thread.sleep(1000);
+                intake.setVelocity(-500);
+            }
+        }
+         */
+
+//        Thread.sleep(1000);
+//        intake.setVelocity(-500);
+//        Thread.sleep(3000);
         shooter.setVelocity(0);
         moveForward(-350);
+        //turn(30);
+        //while (opModeIsActive()) intake.setPower(0.5);
     }}
