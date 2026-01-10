@@ -1,13 +1,14 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import com.acmerobotics.dashboard.config.Config;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.bylazar.
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.configurables.annotations.Sorter;
 
 
 @TeleOp
@@ -19,7 +20,7 @@ public class MecanumTeleop extends LinearOpMode {
     private Servo gate = null; //new servo js added
     double driveSpeed;
     private double maxspeed = 2800;
-    private double feedback = 0.001;
+    @Sorter(sort = 0) double feedback = 0.001;
 
     boolean wasPressedLastFrame = false;
 
@@ -29,7 +30,7 @@ public class MecanumTeleop extends LinearOpMode {
     boolean shooterToggle = false;
     boolean intakeUsedLastFrame = false;
 
-    double power = 1400;
+    @Sorter(sort = 1) int power = 1400;
 
 
     @Override
