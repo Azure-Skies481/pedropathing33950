@@ -120,6 +120,8 @@ public class AutoFarBlue extends LinearOpMode {
         shooter.setVelocity(1650);
         gate.setPosition(0.5);
         Thread.sleep(1000);
+        telemetry.addData("ShooterVelocity", shooter.getVelocity());
+        telemetry.update();
         intake.setVelocity(-1200);
         Thread.sleep(3000);
         intake.setVelocity(0);

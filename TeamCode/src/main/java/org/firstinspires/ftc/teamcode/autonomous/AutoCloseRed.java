@@ -10,8 +10,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.configurables.annotations.Sorter;
 @Autonomous
+@Configurable
 public class AutoCloseRed extends LinearOpMode{
 
     private DcMotorEx intake = null;
@@ -28,7 +30,12 @@ public class AutoCloseRed extends LinearOpMode{
     double power = 1550;
     double drivespeed;
 
+    @Sorter(sort = 0) public static double shooterVelocity = 1000;
+
     boolean aura = true;
+
+
+
 
     DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
@@ -105,7 +112,11 @@ public class AutoCloseRed extends LinearOpMode{
             telemetry.addData("imu: ", imuAngle);
             telemetry.addData("error: ", error);
             telemetry.update();
-            if (Math.abs(error) <= 1 && velocity<=0.3) break;
+            if (Math.abs(error) <= 1 && velocity<=0.3){
+                telemetry.addData("skibidi", "yes it's done yo");
+                telemetry.update();
+                break;
+            }
         }
     }
     // positive = left. negative = right
@@ -113,6 +124,8 @@ public class AutoCloseRed extends LinearOpMode{
 
     @Override
     public void runOpMode() throws InterruptedException {
+
+
         frontLeftMotor = hardwareMap.get(DcMotorEx.class, "frontleftMotor");
         backLeftMotor = hardwareMap.get(DcMotorEx.class,"backleftMotor");
         frontRightMotor = hardwareMap.get(DcMotorEx.class,"frontrightMotor");
@@ -160,10 +173,10 @@ public class AutoCloseRed extends LinearOpMode{
 
 
 
-        moveForward(1200);
-        shooter.setVelocity(1250);
+        moveForward(1000);
+        shooter.setVelocity(1150);
 
-        Thread.sleep(5000);
+        Thread.sleep(3500);
         gate.setPosition(0.5);
         Thread.sleep(400);
         turn (0);
@@ -172,11 +185,10 @@ public class AutoCloseRed extends LinearOpMode{
         intake.setPower(0);
         Thread.sleep(1000);
         intake.setPower(1);
-
-
         Thread.sleep(1000);
         intake.setPower(0);
         shooter.setPower(0);
+        moveForward(250);
         turn(85);
         moveForward(700);
 
