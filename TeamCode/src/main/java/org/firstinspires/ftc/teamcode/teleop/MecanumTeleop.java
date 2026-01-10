@@ -20,7 +20,7 @@ public class MecanumTeleop extends LinearOpMode {
     private Servo gate = null; //new servo js added
     double driveSpeed;
     private double maxspeed = 2800;
-    @Sorter(sort = 0) double feedback = 0.001;
+    @Sorter(sort = 0) public static double feedback = 0.0008;
 
     boolean wasPressedLastFrame = false;
 
@@ -30,7 +30,7 @@ public class MecanumTeleop extends LinearOpMode {
     boolean shooterToggle = false;
     boolean intakeUsedLastFrame = false;
 
-    @Sorter(sort = 1) int power = 1400;
+    @Sorter(sort = 1) public static int power = 1400;
 
 
     @Override
@@ -104,6 +104,13 @@ public class MecanumTeleop extends LinearOpMode {
                     gateOpen = !gateOpen;
                 }
                 gateWasPressedLastFrame = false;
+            }
+
+            if (gamepad1.yWasPressed()){
+                power += 20;
+            }
+            if (gamepad1.aWasPressed()){
+                power -=20;
             }
 
             if (gateOpen) {

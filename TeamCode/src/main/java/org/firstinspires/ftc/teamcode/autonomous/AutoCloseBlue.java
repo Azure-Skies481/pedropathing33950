@@ -2,6 +2,12 @@ package org.firstinspires.ftc.teamcode.autonomous;
 
 
 
+import static org.firstinspires.ftc.teamcode.teleop.MecanumTeleop.feedback;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
+import org.firstinspires.ftc.teamcode.teleop.ShootingHelp.*;
+
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -12,20 +18,29 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import java.util.concurrent.TimeUnit;
 
 @Autonomous
 public class AutoCloseBlue extends LinearOpMode {
+
+    ShootingHelp shootingHelp = new ShootingHelp();
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
     //private double maxspeed = 2800;
     //private double feedback = 0.001;
-    boolean wasPressedLastFrame = false;
-    boolean gateWasPressedLastFrame = false; //Satoru...
-    boolean gateOpen = false; //Suguru...
-    boolean shooterToggle = false;
-    double power = 1550;
-    double drivespeed;
+    private boolean wasPressedLastFrame = false;
+    private double time;
+    private boolean gateWasPressedLastFrame = false; //Satoru...
+    private boolean gateOpen = false; //Suguru...
+    private boolean shooterToggle = false;
+    private double power = 1550;
+    private double drivespeed;
+    private double maxspeed = 2800;
+
+    private boolean keepShooting = true;
 
     DcMotorEx frontLeftMotor;
     DcMotorEx backLeftMotor;
@@ -37,6 +52,7 @@ public class AutoCloseBlue extends LinearOpMode {
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
     public void moveForward(double amount) {
+        resetEncoders();
         while (opModeIsActive()) {
             double position = (double) (frontLeftMotor.getCurrentPosition() + backLeftMotor.getCurrentPosition() +
                     frontRightMotor.getCurrentPosition() + backRightMotor.getCurrentPosition()) / 4;
@@ -55,6 +71,7 @@ public class AutoCloseBlue extends LinearOpMode {
         backRightMotor.setPower(0);
     }
     public void strafe(double amount, boolean left) {
+        resetEncoders();
         while (opModeIsActive()){
             double position = (double) (frontLeftMotor.getCurrentPosition() + backLeftMotor.getCurrentPosition() +
                     frontRightMotor.getCurrentPosition() + backRightMotor.getCurrentPosition()) / 4;
@@ -73,8 +90,9 @@ public class AutoCloseBlue extends LinearOpMode {
     public void turn (double angle){
         imu.initialize(parameters);
         imu.resetYaw();
+        resetEncoders();
         while (opModeIsActive()){
-            double imuAngle = imu.getRobotYawPitchRollAngles().getYaw();
+            double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
             double error = angle - imuAngle;
             double power = 0.02*error;
             frontLeftMotor.setPower(-power);
@@ -82,15 +100,28 @@ public class AutoCloseBlue extends LinearOpMode {
             frontRightMotor.setPower(power);
             backRightMotor.setPower(power);
             double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity() + frontRightMotor.getVelocity() + backRightMotor.getVelocity())/4;
+
             telemetry.addData("imu: ", imuAngle);
             telemetry.addData("error: ", error);
             telemetry.update();
-            if (error <= 1 && velocity<=0.3) {
-                telemetry.addData("Skibidi", "TurnFin");
+            if (Math.abs(error) <= 2.5 && velocity<=0.3){
+                telemetry.addData("skibidi", "yes it's done yo");
                 telemetry.update();
                 break;
             }
         }
+
+    }
+    public void resetEncoders() {
+        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     @Override
@@ -124,89 +155,37 @@ public class AutoCloseBlue extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
-        /*
-        //Move back
+        double actualspeed = shooter.getVelocity();
+
         moveForward(1200);
 
-        //shoot setup
-        shooter.setVelocity(1250);
-        Thread.sleep(5000);
-        gate.setPosition(0.5);
-        Thread.sleep(400);
 
-        //align back
-        turn (0);
+        ElapsedTime timer = new ElapsedTime();
+        while (opModeIsActive()){
+            time = timer.time(TimeUnit.MILLISECONDS);
 
-        //shoot
-        intake.setPower(1);
-        Thread.sleep(100);
+            shooter.setPower(shootingHelp.getPID(shooter, 1000));
 
-        //recharge
-        intake.setPower(0);
-        Thread.sleep(1000);
+            if (Math.abs(3500 - time) <= 50) {
+                gate.setPosition(0.5);
+            }
+            if (Math.abs(3900 - time) <= 50){
+                intake.setPower(-1);
+            }
+            if (Math.abs(4000 - time) <= 50){
+                intake.setPower(0);
+            }
+            if (Math.abs(5000 - time) <= 50){
+                intake.setPower(-1);
+            }
+            if (Math.abs(6000 - time) <= 50){
+                intake.setPower(0);
+                shooter.setPower(0);
+                break;
+            }
+        }
+        turn(-90);
+        moveForward(900);
 
-        //shoot again
-        intake.setPower(1);
-        Thread.sleep(1000);
-
-        //disable
-        intake.setPower(0);
-        shooter.setPower(0);
-
-        //move out
-        turn(-85);
-        moveForward(700);
-
-
-
-        //collect extra balls
-        intake.setPower(1);
-        moveForward(400);
-
-        //back into zone
-        moveForward(-1100);
-
-        //turn
-        turn(85);
-
-        //fire!!!
-        intake.setPower(1);
-        Thread.sleep(100);
-
-        //recharge
-        intake.setPower(0);
-        Thread.sleep(1000);
-
-        //Fire Again
-        intake.setPower(1);
-        Thread.sleep(1000);
-
-        //disable
-        intake.setPower(0);
-        shooter.setPower(0);
-
-        //move out
-        turn(-85);
-        moveForward(700);
-         */
-
-        moveForward(1100);
-        shooter.setVelocity(1250);
-
-        Thread.sleep(3500);
-        gate.setPosition(0.5);
-        Thread.sleep(400);
-        turn (0);
-        intake.setPower(1);
-        Thread.sleep(100);
-        intake.setPower(0);
-        Thread.sleep(1000);
-        intake.setPower(1);
-        Thread.sleep(1000);
-        intake.setPower(0);
-        shooter.setPower(0);
-        moveForward(250);
-        turn(-85);
-        moveForward(700);
     }
 }
