@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous
-public class AutoClose extends LinearOpMode{
+public class AutoCloseRed extends LinearOpMode{
 
     private DcMotorEx intake = null;
 
