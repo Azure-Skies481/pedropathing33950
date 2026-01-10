@@ -60,7 +60,6 @@ public class MecanumTeleop extends LinearOpMode {
 
         waitForStart();
         if (isStopRequested()) return;
-
         while (opModeIsActive()) {
             long nowMs = System.currentTimeMillis();
             driveSpeed = 0.4;

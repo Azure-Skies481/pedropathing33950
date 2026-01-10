@@ -28,7 +28,9 @@ public class AutoFarRed extends LinearOpMode{
     double power = 1550;
     double drivespeed;
 
-    @Sorter(sort = 0) double shooterPower = 1625;
+    @Sorter(sort = 0) public static double shooterPower = 1625;
+
+    @Sorter(sort =1) public static long shootTwoPause = 1000;
 
     DcMotorEx frontLeftMotor;
     DcMotorEx backLeftMotor;
@@ -134,10 +136,18 @@ public class AutoFarRed extends LinearOpMode{
         gate.setPosition(0.5);
         Thread.sleep(1000);
         intake.setVelocity(-500);
-        Thread.sleep(1000);
+        Thread.sleep(shootTwoPause);
+        intake.setVelocity(0);
+        Thread.sleep(2000);
+        intake.setVelocity(-500);
+        Thread.sleep(1500);
+        intake.setVelocity(0);
+
+
+        /*
         if (shooter.getVelocity() <= shooterPower-25){
             intake.setVelocity(0);
-            Thread.sleep(1000);
+            Thread.sleep(shootTwoPause);
             if (shooter.getVelocity() >= shooterPower){
                 intake.setVelocity(-500);
             }
@@ -146,8 +156,8 @@ public class AutoFarRed extends LinearOpMode{
                 intake.setVelocity(-500);
             }
         }
-        Thread.sleep(3000);
-        intake.setVelocity(0);
+         */
+
 //        Thread.sleep(1000);
 //        intake.setVelocity(-500);
 //        Thread.sleep(3000);
