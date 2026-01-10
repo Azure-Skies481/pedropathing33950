@@ -9,8 +9,11 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.configurables.annotations.Sorter;
 
 @Autonomous
+@Configurable
 public class AutoFarRed extends LinearOpMode{
 
     private DcMotorEx intake = null;
@@ -24,6 +27,8 @@ public class AutoFarRed extends LinearOpMode{
     boolean shooterToggle = false;
     double power = 1550;
     double drivespeed;
+
+    @Sorter(sort = 0) double shooterPower = 1625;
 
     DcMotorEx frontLeftMotor;
     DcMotorEx backLeftMotor;
@@ -124,16 +129,16 @@ public class AutoFarRed extends LinearOpMode{
         //while (opModeIsActive()) shooter.setVelocity(1650);
 
         //gate.setPosition(0.5);
-        shooter.setVelocity(1650);
+        shooter.setVelocity(shooterPower);
         Thread.sleep(1500);
         gate.setPosition(0.5);
         Thread.sleep(1000);
         intake.setVelocity(-500);
         Thread.sleep(1000);
-        if (shooter.getVelocity() <= 1600){
+        if (shooter.getVelocity() <= shooterPower-25){
             intake.setVelocity(0);
             Thread.sleep(1000);
-            if (shooter.getVelocity() >= 1625){
+            if (shooter.getVelocity() >= shooterPower){
                 intake.setVelocity(-500);
             }
             else{
