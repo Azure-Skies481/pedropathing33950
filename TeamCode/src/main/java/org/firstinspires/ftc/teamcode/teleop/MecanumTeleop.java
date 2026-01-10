@@ -137,7 +137,7 @@ public class MecanumTeleop extends LinearOpMode {
 
             intake.setPower(gamepad2.right_trigger * -0.5 + gamepad2.left_trigger);
             intakeUsedLastFrame = gamepad2.right_trigger > 0;
-            telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
+            telemetry.addData("Shooter Real Velocity", shooter.getVelocity() * 28);
             telemetry.addData("Shooter Target Velocity", power);
             telemetry.addData("Gate Open?", gateOpen);
             telemetry.update();

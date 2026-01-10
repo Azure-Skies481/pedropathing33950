@@ -112,7 +112,7 @@ public class AutoCloseRed extends LinearOpMode{
             telemetry.addData("imu: ", imuAngle);
             telemetry.addData("error: ", error);
             telemetry.update();
-            if (Math.abs(error) <= 1 && velocity<=0.3){
+            if (Math.abs(error) <= 2.5 && velocity<=0.3){
                 telemetry.addData("skibidi", "yes it's done yo");
                 telemetry.update();
                 break;
@@ -173,8 +173,8 @@ public class AutoCloseRed extends LinearOpMode{
 
 
 
-        moveForward(1000);
-        shooter.setVelocity(1150);
+        moveForward(1100);
+        shooter.setVelocity(1250);
 
         Thread.sleep(3500);
         gate.setPosition(0.5);
