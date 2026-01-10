@@ -25,15 +25,15 @@ public class AutoFar extends LinearOpMode{
     double power = 1550;
     double drivespeed;
 
-    DcMotor frontLeftMotor;
-    DcMotor backLeftMotor;
-    DcMotor frontRightMotor;
-    DcMotor backRightMotor;
+    DcMotorEx frontLeftMotor;
+    DcMotorEx backLeftMotor;
+    DcMotorEx frontRightMotor;
+    DcMotorEx backRightMotor;
 
-    //IMU imu = hardwareMap.get(IMU.class, "imu");
-    //IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-            //RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-            //RevHubOrientationOnRobot.UsbFacingDirection.UP));
+    IMU imu = null;
+    IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+            RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+            RevHubOrientationOnRobot.UsbFacingDirection.UP));
     public void moveForward(double amount) {
         while (opModeIsActive()) {
             double position = (double) (frontLeftMotor.getCurrentPosition() + backLeftMotor.getCurrentPosition() +
@@ -44,7 +44,8 @@ public class AutoFar extends LinearOpMode{
             frontRightMotor.setPower(power);
             backLeftMotor.setPower(power);
             backRightMotor.setPower(power);
-            if (Math.abs(error) <= 15) break;
+            double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity() + frontRightMotor.getVelocity() + backRightMotor.getVelocity())/4;
+            if (Math.abs(error) <= 15 && velocity <= 0.3) break;
         }
         frontLeftMotor.setPower(0);
         frontRightMotor.setPower(0);
@@ -65,30 +66,38 @@ public class AutoFar extends LinearOpMode{
             backRightMotor.setPower(power * skibidi);
         }
     }
-    /*
+
 
     public void turn (double angle){
+        imu.initialize(parameters);
+        imu.resetYaw();
         while (opModeIsActive()){
             double imuAngle = imu.getRobotYawPitchRollAngles().getYaw();
             double error = angle - imuAngle;
-            double power = 0.01*error;
-            frontLeftMotor.setPower(power);
-            backLeftMotor.setPower(power);
+            double power = 0.02*error;
+            frontLeftMotor.setPower(-power);
+            backLeftMotor.setPower(-power);
             frontRightMotor.setPower(power);
             backRightMotor.setPower(power);
+            double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity() + frontRightMotor.getVelocity() + backRightMotor.getVelocity())/4;
+            telemetry.addData("imu: ", imuAngle);
+            telemetry.addData("error: ", error);
+            telemetry.update();
+            if (error <= 1 && velocity<=0.3) break;
         }
     }
 
-     */
+
 
 
     @Override
     public void runOpMode() throws InterruptedException {
-        //imu.initialize(parameters);
-        frontLeftMotor = hardwareMap.dcMotor.get("frontleftMotor");
-        backLeftMotor = hardwareMap.dcMotor.get("backleftMotor");
-        frontRightMotor = hardwareMap.dcMotor.get("frontrightMotor");
-        backRightMotor = hardwareMap.dcMotor.get("backrightMotor");
+        imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(parameters);
+        frontLeftMotor = hardwareMap.get(DcMotorEx.class, "frontleftMotor");
+        backLeftMotor = hardwareMap.get(DcMotorEx.class, "backleftMotor");
+        frontRightMotor = hardwareMap.get(DcMotorEx.class, "frontrightMotor");
+        backRightMotor = hardwareMap.get(DcMotorEx.class, "backrightMotor");
 
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -116,13 +125,13 @@ public class AutoFar extends LinearOpMode{
 
         //gate.setPosition(0.5);
         shooter.setVelocity(1650);
-        moveForward(-200);
-
+        gate.setPosition(0.5);
+        Thread.sleep(1000);
         intake.setVelocity(-1200);
         Thread.sleep(3000);
         intake.setVelocity(0);
         shooter.setVelocity(0);
-        moveForward(-600);
+        moveForward(-350);
         //turn(30);
         //while (opModeIsActive()) intake.setPower(0.5);
     }
