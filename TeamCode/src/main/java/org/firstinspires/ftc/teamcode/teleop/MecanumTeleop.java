@@ -9,11 +9,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.Sorter;
+import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
 
 
 @TeleOp
 @Configurable
 public class MecanumTeleop extends LinearOpMode {
+    ShootingHelp shootingHelp = new ShootingHelp();
 
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
@@ -137,7 +139,7 @@ public class MecanumTeleop extends LinearOpMode {
             }
             if (shooterToggle) {
 
-                this.shooter.setPower((feedback * (power - actualspeed) + actualspeed/maxspeed));
+                this.shooter.setPower((shootingHelp.getPID(shooter, power)));
             } else {
                 this.shooter.setVelocity(0);
             }

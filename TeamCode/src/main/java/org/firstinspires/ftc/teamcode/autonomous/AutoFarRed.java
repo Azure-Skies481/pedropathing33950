@@ -11,11 +11,12 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.Sorter;
+import  org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
 
 @Autonomous
 @Configurable
 public class AutoFarRed extends LinearOpMode{
-
+    ShootingHelp shootingHelp = new ShootingHelp();
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added

@@ -10,9 +10,11 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
 
 @Autonomous
 public class AutoFarBlue extends LinearOpMode {
+    ShootingHelp shootingHelp = new ShootingHelp();
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
