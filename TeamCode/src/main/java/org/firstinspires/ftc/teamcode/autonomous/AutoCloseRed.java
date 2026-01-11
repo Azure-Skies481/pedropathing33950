@@ -183,7 +183,7 @@ public class AutoCloseRed extends LinearOpMode{
         Thread.sleep(400);
         turn (0);
         intake.setPower(1);
-        Thread.sleep(100);
+        Thread.sleep(300);
         intake.setPower(0);
         Thread.sleep(1000);
         intake.setPower(1);
