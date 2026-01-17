@@ -24,24 +24,24 @@ public class MecanumTeleop extends LinearOpMode {
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
-    double driveSpeed;
+    private double driveSpeed;
     private double maxspeed = 2800;
     @Sorter(sort = 0) public static double feedback = 0.0008;
 
-    boolean wasPressedLastFrame = false;
+    private boolean wasPressedLastFrame = false;
 
-    boolean gateWasPressedLastFrame = false; //satoru...
+    private boolean gateWasPressedLastFrame = false; //satoru...
 
-    boolean gateOpen = false; //suguru...
-    boolean shooterToggle = false;
-    boolean intakeUsedLastFrame = false;
-    double imuAlignAngle;
+    private boolean gateOpen = false; //suguru...
+    private boolean shooterToggle = false;
+    private boolean intakeUsedLastFrame = false;
+    private double imuAlignAngle;
 
-    DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
+    private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1) public static int power = 1400;
-    IMU imu = null;
-    IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+    private IMU imu = null;
+    private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
 

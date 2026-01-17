@@ -24,30 +24,20 @@ public class AutoCloseRed extends LinearOpMode{
     ShootingHelp shootingHelp = new ShootingHelp();
 
     private DcMotorEx intake = null;
-
-    private DcMotorEx reverseintake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
     private double maxspeed = 2800;
     private double feedback = 0.001;
-    boolean wasPressedLastFrame = false;
-    boolean gateWasPressedLastFrame = false; //Satoru...
-    boolean gateOpen = false; //Suguru...
-    boolean shooterToggle = false;
-    double power = 1550;
-    double drivespeed;
+    private double power = 1550;
+    private double drivespeed;
 
     @Sorter(sort = 0) public static double shooterVelocity = 1000;
 
-    boolean aura = true;
+    private boolean aura = true;
+    private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
-
-
-
-    DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
-
-    IMU imu = null;
-    IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+    private IMU imu = null;
+    private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
 

@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Autonomous
 public class AutoCloseBlue extends LinearOpMode {
 
-    ShootingHelp shootingHelp = new ShootingHelp();
+    private ShootingHelp shootingHelp = new ShootingHelp();
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
@@ -42,13 +42,13 @@ public class AutoCloseBlue extends LinearOpMode {
 
     private boolean keepShooting = true;
 
-    DcMotorEx frontLeftMotor;
-    DcMotorEx backLeftMotor;
-    DcMotorEx frontRightMotor;
-    DcMotorEx backRightMotor;
+    private DcMotorEx frontLeftMotor;
+    private DcMotorEx backLeftMotor;
+    private DcMotorEx frontRightMotor;
+    private DcMotorEx backRightMotor;
 
-    IMU imu = null;
-    IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+    private IMU imu = null;
+    private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
     public void moveForward(double amount) {
