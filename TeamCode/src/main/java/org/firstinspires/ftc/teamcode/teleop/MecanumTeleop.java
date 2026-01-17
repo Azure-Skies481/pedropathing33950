@@ -152,6 +152,9 @@ public class MecanumTeleop extends LinearOpMode {
             if (gamepad1.aWasPressed()){
                 power -=20;
             }
+            if (gamepad1.xWasPressed()){
+                imuAlign();
+            }
 
             if (gateOpen) {
                 //open
