@@ -122,6 +122,7 @@ public class AutoFarBlue extends LinearOpMode {
 
         ElapsedTime timer = new ElapsedTime();
         while (opModeIsActive()){
+            turn (-30);
             time = timer.time(TimeUnit.MILLISECONDS);
 
             shooter.setPower(shootingHelp.getPID(shooter, 1000));
