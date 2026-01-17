@@ -11,7 +11,11 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.Sorter;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import  org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
+
+import java.util.concurrent.TimeUnit;
 
 @Autonomous
 @Configurable
@@ -128,43 +132,30 @@ public class AutoFarRed extends LinearOpMode{
 
         waitForStart();
         if (isStopRequested()) return;
+        ElapsedTime timer = new ElapsedTime();
+        while (opModeIsActive()){
+            time = timer.time(TimeUnit.MILLISECONDS);
 
-        //while (opModeIsActive()) shooter.setVelocity(1650);
+            shooter.setPower(shootingHelp.getPID(shooter, 1000));
 
-        //gate.setPosition(0.5);
-        shooter.setVelocity(shooterPower);
-        Thread.sleep(1500);
-        gate.setPosition(0.5);
-        Thread.sleep(1000);
-        intake.setVelocity(-500);
-        Thread.sleep(shootTwoPause);
-        intake.setVelocity(0);
-        Thread.sleep(2000);
-        intake.setVelocity(-500);
-        Thread.sleep(1500);
-        intake.setVelocity(0);
-
-
-        /*
-        if (shooter.getVelocity() <= shooterPower-25){
-            intake.setVelocity(0);
-            Thread.sleep(shootTwoPause);
-            if (shooter.getVelocity() >= shooterPower){
-                intake.setVelocity(-500);
+            if (Math.abs(1500 - time) <= 50) {
+                gate.setPosition(0.5);
             }
-            else{
-                Thread.sleep(1000);
-                intake.setVelocity(-500);
+            if (Math.abs(2500 - time) <= 50){
+                intake.setPower(-1);
+            }
+            if (Math.abs(3500 - time) <= 50){
+                intake.setPower(0);
+            }
+            if (Math.abs(4500 - time) <= 50){
+                intake.setPower(-1);
+            }
+            if (Math.abs(6000 - time) <= 50){
+                intake.setPower(0);
+                shooter.setPower(0);
+                break;
             }
         }
-         */
-
-//        Thread.sleep(1000);
-//        intake.setVelocity(-500);
-//        Thread.sleep(3000);
-        shooter.setVelocity(0);
         moveForward(-350);
-        //turn(30);
-        //while (opModeIsActive()) intake.setPower(0.5);
     }
 }

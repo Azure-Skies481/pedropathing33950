@@ -12,7 +12,12 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.Sorter;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
+
+import java.util.concurrent.TimeUnit;
+
 @Autonomous
 @Configurable
 public class AutoCloseRed extends LinearOpMode{
@@ -173,26 +178,37 @@ public class AutoCloseRed extends LinearOpMode{
         //telemetry.addData("e", 6);
         //telemetry.update();4
 
+        double actualspeed = shooter.getVelocity();
+
+        moveForward(1200);
 
 
-        moveForward(1100);
-        shooter.setVelocity(1250);
+        ElapsedTime timer = new ElapsedTime();
+        while (opModeIsActive()){
+            time = timer.time(TimeUnit.MILLISECONDS);
 
-        Thread.sleep(3500);
-        gate.setPosition(0.5);
-        Thread.sleep(400);
-        turn (0);
-        intake.setPower(1);
-        Thread.sleep(300);
-        intake.setPower(0);
-        Thread.sleep(1000);
-        intake.setPower(1);
-        Thread.sleep(1000);
-        intake.setPower(0);
-        shooter.setPower(0);
-        moveForward(250);
-        turn(85);
-        moveForward(700);
+            shooter.setPower(shootingHelp.getPID(shooter, 1000));
+
+            if (Math.abs(3500 - time) <= 50) {
+                gate.setPosition(0.5);
+            }
+            if (Math.abs(3900 - time) <= 50){
+                intake.setPower(-1);
+            }
+            if (Math.abs(4000 - time) <= 50){
+                intake.setPower(0);
+            }
+            if (Math.abs(5000 - time) <= 50){
+                intake.setPower(-1);
+            }
+            if (Math.abs(6000 - time) <= 50){
+                intake.setPower(0);
+                shooter.setPower(0);
+                break;
+            }
+            turn(90);
+            moveForward(900);
+        }
 
     }
 }
