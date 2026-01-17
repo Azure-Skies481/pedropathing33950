@@ -112,8 +112,8 @@ public class MecanumTeleop extends LinearOpMode {
 
 
             // --- Drive (unchanged) ---
-            double y = gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y);
-            double x = -gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x);
+            double y = -gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y);
+            double x = gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x);
             double rx = Math.pow(gamepad1.right_stick_x, 3.0);
 
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);

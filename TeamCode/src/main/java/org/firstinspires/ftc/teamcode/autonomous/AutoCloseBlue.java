@@ -149,7 +149,7 @@ public class AutoCloseBlue extends LinearOpMode {
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         waitForStart();

@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
 
 import java.util.concurrent.TimeUnit;
@@ -36,6 +37,7 @@ public class AutoFarBlue extends LinearOpMode {
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
     public void moveForward(double amount) {
+        resetEncoders();
         while (opModeIsActive()) {
             double position = (double) (frontLeftMotor.getCurrentPosition() + backLeftMotor.getCurrentPosition() +
                     frontRightMotor.getCurrentPosition() + backRightMotor.getCurrentPosition()) / 4;
@@ -72,8 +74,9 @@ public class AutoFarBlue extends LinearOpMode {
     public void turn (double angle){
         imu.initialize(parameters);
         imu.resetYaw();
+        resetEncoders();
         while (opModeIsActive()){
-            double imuAngle = imu.getRobotYawPitchRollAngles().getYaw();
+            double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
             double error = angle - imuAngle;
             double power = 0.02*error;
             frontLeftMotor.setPower(-power);
@@ -81,11 +84,27 @@ public class AutoFarBlue extends LinearOpMode {
             frontRightMotor.setPower(power);
             backRightMotor.setPower(power);
             double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity() + frontRightMotor.getVelocity() + backRightMotor.getVelocity())/4;
+
             telemetry.addData("imu: ", imuAngle);
             telemetry.addData("error: ", error);
             telemetry.update();
-            if (error <= 1 && velocity<=0.3) break;
+            if (Math.abs(error) <= 2.5 && velocity<=0.3){
+                telemetry.addData("skibidi", "yes it's done yo");
+                telemetry.update();
+                break;
+            }
         }
+    }
+    public void resetEncoders() {
+        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     @Override
@@ -113,7 +132,7 @@ public class AutoFarBlue extends LinearOpMode {
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         waitForStart();
@@ -121,22 +140,23 @@ public class AutoFarBlue extends LinearOpMode {
 
 
         ElapsedTime timer = new ElapsedTime();
+        turn(30);
         while (opModeIsActive()){
-            turn (-30);
+
             time = timer.time(TimeUnit.MILLISECONDS);
 
-            shooter.setPower(shootingHelp.getPID(shooter, 1000));
+            shooter.setPower(shootingHelp.getPID(shooter, 1650));
 
-            if (Math.abs(1500 - time) <= 50) {
+            if (Math.abs(3500 - time) <= 50) {
                 gate.setPosition(0.5);
             }
-            if (Math.abs(2500 - time) <= 50){
+            if (Math.abs(3900 - time) <= 50){
                 intake.setPower(-1);
             }
-            if (Math.abs(3500 - time) <= 50){
+            if (Math.abs(4000 - time) <= 50){
                 intake.setPower(0);
             }
-            if (Math.abs(8500 - time) <= 50){
+            if (Math.abs(8000 - time) <= 50){
                 intake.setPower(-1);
             }
             if (Math.abs(9000 - time) <= 50){
