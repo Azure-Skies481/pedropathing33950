@@ -45,6 +45,10 @@ public class MecanumTeleop extends LinearOpMode {
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
 
+    public void getImuAlignAngle(){
+        imuAlignAngle=imu.getRobotYawPitchRollAngles().getYaw();
+    }
+
     public void imuAlign(){
         while (opModeIsActive()){
             double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
@@ -152,6 +156,10 @@ public class MecanumTeleop extends LinearOpMode {
             if (gamepad1.aWasPressed()){
                 power -=20;
             }
+            if (gamepad1.bWasPressed()){
+                getImuAlignAngle();
+            }
+
             if (gamepad1.xWasPressed()){
                 imuAlign();
             }

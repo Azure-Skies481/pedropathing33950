@@ -123,7 +123,7 @@ public class AutoFarRed extends LinearOpMode{
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         waitForStart();
@@ -144,10 +144,10 @@ public class AutoFarRed extends LinearOpMode{
             if (Math.abs(3500 - time) <= 50){
                 intake.setPower(0);
             }
-            if (Math.abs(4500 - time) <= 50){
+            if (Math.abs(8500 - time) <= 50){
                 intake.setPower(-1);
             }
-            if (Math.abs(6000 - time) <= 50){
+            if (Math.abs(9000 - time) <= 50){
                 intake.setPower(0);
                 shooter.setPower(0);
                 break;

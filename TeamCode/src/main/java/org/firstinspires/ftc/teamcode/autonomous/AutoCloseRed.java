@@ -148,8 +148,8 @@ public class AutoCloseRed extends LinearOpMode{
         shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
 
-        intake.setDirection(DcMotorSimple.Direction.FORWARD);
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
@@ -177,7 +177,7 @@ public class AutoCloseRed extends LinearOpMode{
         while (opModeIsActive()){
             time = timer.time(TimeUnit.MILLISECONDS);
 
-            shooter.setPower(shootingHelp.getPID(shooter, 1000));
+            shooter.setPower(shootingHelp.getPID(shooter, 1290));
 
             if (Math.abs(3500 - time) <= 50) {
                 gate.setPosition(0.5);
@@ -188,17 +188,18 @@ public class AutoCloseRed extends LinearOpMode{
             if (Math.abs(4000 - time) <= 50){
                 intake.setPower(0);
             }
-            if (Math.abs(5000 - time) <= 50){
+            if (Math.abs(8000 - time) <= 50){
                 intake.setPower(-1);
             }
-            if (Math.abs(6000 - time) <= 50){
+            if (Math.abs(9000 - time) <= 50){
                 intake.setPower(0);
                 shooter.setPower(0);
                 break;
             }
-            turn(90);
-            moveForward(900);
+
         }
+        turn(90);
+        moveForward(900);
 
     }
 }
