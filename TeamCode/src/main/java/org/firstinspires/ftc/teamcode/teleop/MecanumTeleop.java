@@ -128,11 +128,11 @@ public class MecanumTeleop extends LinearOpMode {
 
 
             if (gamepad2.dpad_up){
-                power = 1400;
+                power = 1450;
             } else if (gamepad2.dpad_left){
-                power = 1250;
+                power = 1350;
             } else if (gamepad2.dpad_down){
-                power = 1150;
+                power = 1250;
             } else if (gamepad2.dpad_right) power = 1650;
 
             if (intakeUsedLastFrame && gamepad2.right_trigger==0 && gateOpen) gate.setPosition(0.0);
