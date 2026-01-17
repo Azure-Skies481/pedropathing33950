@@ -1,14 +1,18 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.Sorter;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
 
 
@@ -31,13 +35,45 @@ public class MecanumTeleop extends LinearOpMode {
     boolean gateOpen = false; //suguru...
     boolean shooterToggle = false;
     boolean intakeUsedLastFrame = false;
+    double imuAlignAngle;
+
+    DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1) public static int power = 1400;
+    IMU imu = null;
+    IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+            RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+            RevHubOrientationOnRobot.UsbFacingDirection.UP));
+
+    public void imuAlign(){
+        while (opModeIsActive()){
+            double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+            double error = imuAlignAngle - imuAngle;
+            double power = 0.02*error;
+            frontLeftMotor.setPower(-power);
+            backLeftMotor.setPower(-power);
+            frontRightMotor.setPower(power);
+            backRightMotor.setPower(power);
+            double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity() + frontRightMotor.getVelocity() + backRightMotor.getVelocity())/4;
+
+            telemetry.addData("imu: ", imuAngle);
+            telemetry.addData("error: ", error);
+            telemetry.update();
+            if (Math.abs(error) <= 2.5 && velocity<=0.3){
+                telemetry.addData("skibidi", "yes it's done yo");
+                telemetry.update();
+                break;
+            }
+        }
+    }
 
 
     @Override
     public void runOpMode() throws InterruptedException {
         // Drivetrain motors (unchanged)
+
+        imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(parameters);
         DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontleftMotor");
         DcMotor backLeftMotor = hardwareMap.dcMotor.get("backleftMotor");
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontrightMotor");
@@ -59,6 +95,8 @@ public class MecanumTeleop extends LinearOpMode {
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        imuAlignAngle=imu.getRobotYawPitchRollAngles().getYaw();
 
         waitForStart();
         if (isStopRequested()) return;
