@@ -11,9 +11,13 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.Sorter;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
+
+import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
 
 @TeleOp
@@ -36,6 +40,8 @@ public class MecanumTeleop extends LinearOpMode {
     private boolean shooterToggle = false;
     private boolean intakeUsedLastFrame = false;
     private double imuAlignAngle;
+    private boolean launchSystem = false;
+    private double launchSystemStart;
 
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
@@ -44,6 +50,7 @@ public class MecanumTeleop extends LinearOpMode {
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
+    ElapsedTime Timer = new ElapsedTime();
 
     public void getImuAlignAngle(){
         imuAlignAngle=imu.getRobotYawPitchRollAngles().getYaw();
@@ -70,6 +77,7 @@ public class MecanumTeleop extends LinearOpMode {
             }
         }
     }
+
 
 
     @Override
@@ -102,9 +110,11 @@ public class MecanumTeleop extends LinearOpMode {
 
         imuAlignAngle=imu.getRobotYawPitchRollAngles().getYaw();
 
+
         waitForStart();
         if (isStopRequested()) return;
         while (opModeIsActive()) {
+            time = Timer.time(TimeUnit.MILLISECONDS);
             long nowMs = System.currentTimeMillis();
             driveSpeed = 0.4;
 
@@ -139,16 +149,28 @@ public class MecanumTeleop extends LinearOpMode {
                 power = 1250;
             } else if (gamepad2.dpad_right) power = 1650;
 
-            if (intakeUsedLastFrame && gamepad2.right_trigger==0 && gateOpen) gate.setPosition(0.0);
-
-            if (gamepad2.right_bumper) {
-                gateWasPressedLastFrame = true;
-            } else {
-                if (gateWasPressedLastFrame) {
-                    gateOpen = !gateOpen;
-                }
-                gateWasPressedLastFrame = false;
+            if (gamepad2.yWasPressed() && !launchSystem){
+                launchSystem = true;
+                launchSystemStart = time;
             }
+            gateOpen = gamepad2.right_bumper;
+
+            intake.setPower(gamepad2.right_trigger * -0.5 + gamepad2.left_trigger);
+            intakeUsedLastFrame = gamepad2.right_trigger > 0;
+
+            if (launchSystem){
+                gateOpen = true;
+                intake.setPower(800);
+            }
+            if (time >= launchSystemStart + 500){
+                gateOpen = false;
+                intake.setPower(0);
+                launchSystem = false;
+            }
+
+
+
+
 
             if (gamepad1.yWasPressed()){
                 power += 20;
@@ -164,6 +186,8 @@ public class MecanumTeleop extends LinearOpMode {
                 imuAlign();
             }
 
+
+
             if (gateOpen) {
                 //open
                 gate.setPosition(0.5);
@@ -171,6 +195,10 @@ public class MecanumTeleop extends LinearOpMode {
                 //close
                 gate.setPosition(0.0);
             }
+
+
+
+
             //gate.setPosition(0.5);
             if (intakeUsedLastFrame && gamepad2.right_trigger == 0) {
                 gateOpen = false;
@@ -193,8 +221,7 @@ public class MecanumTeleop extends LinearOpMode {
                 this.shooter.setVelocity(0);
             }
 
-            intake.setPower(gamepad2.right_trigger * -0.5 + gamepad2.left_trigger);
-            intakeUsedLastFrame = gamepad2.right_trigger > 0;
+
             telemetry.addData("Shooter Real Velocity", shooter.getVelocity());
             telemetry.addData("Shooter Target Velocity", power);
             telemetry.addData("Gate Open?", gateOpen);
