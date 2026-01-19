@@ -188,7 +188,8 @@ public class HORSreplica extends LinearOpMode {
                 dpadRightWasPressed = false;
             }
 
-            // --- Intake control (gamepad1 triggers preferred) ---
+            // --- Intake control \\
+            // \
             double intakePower = 0.0;
             if (gamepad1.left_trigger > 0.05 || gamepad1.right_trigger > 0.05) {
                 intakePower = gamepad1.left_trigger - gamepad1.right_trigger;
@@ -197,8 +198,8 @@ public class HORSreplica extends LinearOpMode {
             }
             intake.setPower(intakePower);
 
-            // Shooter toggle (gamepad1 dpad_down rising edge)
-            if (gamepad1.dpad_down) {
+            //togelele shoooter
+            if (gamepad1.dpad_down || gamepad2.dpad_down) {
                 if (!shooterToggleWasPressed) {
                     shooterToggle = !shooterToggle;
                     flywheel.setShooterOn(shooterToggle);
