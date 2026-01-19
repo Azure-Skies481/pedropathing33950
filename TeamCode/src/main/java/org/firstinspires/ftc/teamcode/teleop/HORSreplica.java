@@ -67,7 +67,7 @@ public class HORSreplica extends LinearOpMode {
 
     // --- Restored working IMU align logic ---
     public void imuAlign() {
-        double timeout = 2.0;
+        double timeout = 0.5;
         ElapsedTime alignTimer = new ElapsedTime();
         alignTimer.reset();
 
@@ -230,7 +230,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Shooter and Gate
-            gate.setPosition(gateOpen ? 0.5 : 0.0);
+            gate.setPosition(gateOpen ? 0.5 : 0.36);
 
             // Shooter logic update each loop
             flywheel.update();
