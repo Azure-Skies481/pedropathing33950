@@ -169,7 +169,7 @@ public class HORSreplica extends LinearOpMode {
             backRightMotor.setPower(backRightPower);
 
             // ---- GAMEPAD1: Shooter RPM increment/decrement ----
-            if (gamepad1.dpad_left) {
+            if (gamepad1.dpad_left || gamepad2.dpad_left) {
                 if (!dpadLeftWasPressed) {
                     power = Math.max(0, power - 50);
                     flywheel.setTargetRPM(power);
@@ -178,7 +178,7 @@ public class HORSreplica extends LinearOpMode {
             } else {
                 dpadLeftWasPressed = false;
             }
-            if (gamepad1.dpad_right) {
+            if (gamepad1.dpad_right || gamepad2.dpad_right) {
                 if (!dpadRightWasPressed) {
                     power = power + 50;
                     flywheel.setTargetRPM(power);
@@ -210,7 +210,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate toggle (gamepad1 b rising edge)
-            if (gamepad1.b) {
+            if (gamepad1.b || gamepad2.b) {
                 if (!gateToggleWasPressed) {
                     gateOpen = !gateOpen;
                 }
@@ -220,7 +220,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Reset IMU reference heading (gamepad1 a rising edge)
-            if (gamepad1.a) {
+            if (gamepad1.a || gamepad2.a) {
                 if (!imuReferenceResetWasPressed) {
                     imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
                 }

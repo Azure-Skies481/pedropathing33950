@@ -159,7 +159,7 @@ public class MecanumTeleop extends LinearOpMode {
             backRightMotor.setPower(backRightPower);
 
             // ---- GAMEPAD1: Shooter RPM increment/decrement ----
-            if (gamepad1.dpad_left) {
+            if (gamepad1.dpad_left||gamepad2.dpad_left) {
                 if (!dpadLeftWasPressed) {
                     power = Math.max(0, power - 50);
                 }
@@ -167,7 +167,7 @@ public class MecanumTeleop extends LinearOpMode {
             } else {
                 dpadLeftWasPressed = false;
             }
-            if (gamepad1.dpad_right) {
+            if (gamepad1.dpad_right || gamepad2.dpad_right) {
                 if (!dpadRightWasPressed) {
                     power = power + 50;
                 }
@@ -186,7 +186,7 @@ public class MecanumTeleop extends LinearOpMode {
             intake.setPower(intakePower);
 
             // Shooter toggle (gamepad1 dpad_down rising edge)
-            if (gamepad1.dpad_down) {
+            if (gamepad2.dpad_down || gamepad1.dpad_down) {
                 if (!shooterToggleWasPressed) {
                     shooterToggle = !shooterToggle;
                 }
@@ -196,7 +196,7 @@ public class MecanumTeleop extends LinearOpMode {
             }
 
             // Gate toggle (gamepad1 b rising edge)
-            if (gamepad1.b) {
+            if (gamepad1.b || gamepad2.b) {
                 if (!gateToggleWasPressed) {
                     gateOpen = !gateOpen;
                 }
@@ -206,7 +206,7 @@ public class MecanumTeleop extends LinearOpMode {
             }
 
             // Reset IMU reference heading (gamepad1 a rising edge)
-            if (gamepad1.a) {
+            if (gamepad1.a || gamepad2.a) {
                 if (!imuReferenceResetWasPressed) {
                     imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
                 }
@@ -216,7 +216,7 @@ public class MecanumTeleop extends LinearOpMode {
             }
 
             // Shooter and Gate
-            gate.setPosition(gateOpen ? 0.5 : 0.0);
+            gate.setPosition(gateOpen ? 0.5 : 0.36);
             shooter.setPower(shooterToggle ? shootingHelp.getPID(shooter, power) : 0);
 
             // IMU Align (gamepad1.x rising edge)
