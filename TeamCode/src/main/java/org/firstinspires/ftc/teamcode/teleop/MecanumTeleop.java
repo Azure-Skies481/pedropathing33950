@@ -155,17 +155,18 @@ public class MecanumTeleop extends LinearOpMode {
             }
             gateOpen = gamepad2.right_bumper;
 
-            intake.setPower(gamepad2.right_trigger * -0.5 + gamepad2.left_trigger);
+            intake.setPower(gamepad2.right_trigger * -0.85 + gamepad2.left_trigger);
             intakeUsedLastFrame = gamepad2.right_trigger > 0;
 
             if (launchSystem){
                 gateOpen = true;
-                intake.setPower(800);
+                intake.setPower(-0.85);
             }
-            if (time >= launchSystemStart + 500){
+            if (time >= launchSystemStart + 1000){
                 gateOpen = false;
                 intake.setPower(0);
                 launchSystem = false;
+                Timer.reset();
             }
 
 

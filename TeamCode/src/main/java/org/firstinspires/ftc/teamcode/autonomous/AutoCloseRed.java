@@ -177,7 +177,7 @@ public class AutoCloseRed extends LinearOpMode{
         while (opModeIsActive()){
             time = timer.time(TimeUnit.MILLISECONDS);
 
-            shooter.setPower(shootingHelp.getPID(shooter, 1290));
+            shooter.setPower(shootingHelp.getPID(shooter, 1240));
 
             if (Math.abs(3500 - time) <= 50) {
                 gate.setPosition(0.5);
@@ -185,7 +185,7 @@ public class AutoCloseRed extends LinearOpMode{
             if (Math.abs(3900 - time) <= 50){
                 intake.setPower(-1);
             }
-            if (Math.abs(4000 - time) <= 50){
+            if (Math.abs(3920 - time) <= 50){
                 intake.setPower(0);
             }
             if (Math.abs(8000 - time) <= 50){
