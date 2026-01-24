@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 // NOTE: adjust these imports if DriveEncoderConstants / Encoder are in a different package in your project
 import com.pedropathing.ftc.localization.constants.DriveEncoderConstants;
 public class Constants {
-    public static FollowerConstants followerConstants = new FollowerConstants().mass(7);
+    public static FollowerConstants followerConstants = new FollowerConstants().mass(8.2);
 
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
@@ -40,8 +40,9 @@ Examples below show placeholder values and TODO tags where you must fill in real
             .leftRearMotorName("backleftMotor")
             .leftFrontMotorName("frontleftMotor")
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD) //reversed
+
+            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE) //reversed
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
     public static DriveEncoderConstants localizerConstants = new DriveEncoderConstants()
             // TODO: replace these with your actual motor/encoder names in the hardwareMap
@@ -51,19 +52,21 @@ Examples below show placeholder values and TODO tags where you must fill in real
             .leftFrontMotorName("frontleftMotor")
             .leftFrontEncoderDirection(Encoder.FORWARD)
             .leftRearEncoderDirection(Encoder.FORWARD)
-            .rightFrontEncoderDirection(Encoder.FORWARD)
+            .rightFrontEncoderDirection(Encoder.FORWARD
+            )
             .rightRearEncoderDirection(Encoder.FORWARD)// e.g. "left_front_motor"
 
 
             // TODO: set measured robot dimensions (inches)
             .robotWidth( 15.5)   // replace 12.0 with your measured width
             .robotLength( 17.1 ) // replace 12.0 with your measured length
-            /*
+
             // TODO: replace the multipliers below with the values obtained from the tuners
             // Example placeholders (you must run tuners and replace these):
-            .forwardTicksToInches(4.89005 )
-            .strafeTicksToInches(  / strafeMultiplier  / 1.0 )
-            .turnTicksToInches(    / turnMultiplier     1.0  )*/   ;
+
+            .forwardTicksToInches( 1.0 )//2.7108866
+            .strafeTicksToInches( 1.0)//-3.741508
+            .turnTicksToInches(1.0)   ; //0.3225698
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)

@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 @TeleOp
@@ -106,6 +107,27 @@ public class HORSreplica extends LinearOpMode {
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+    public void launchSystem() {
+        stopMove();
+        Timer.reset();
+        double skibidi = Timer.time(TimeUnit.MILLISECONDS);
+
+        gate.setPosition(0.5);
+        intake.setPower(0.85);
+        while (skibidi<1000){
+            skibidi = Timer.time(TimeUnit.MILLISECONDS);
+            flywheel.setTargetRPM(power);
+        }
+        intake.setPower(0);
+        gate.setPosition(0.36);
+    }
+    public void stopMove(){
+        frontLeftMotor.setVelocity(0);
+        backLeftMotor.setVelocity(0);
+        frontRightMotor.setVelocity(0);
+        backRightMotor.setVelocity(0);
+    }
+
     @Override
     public void runOpMode() throws InterruptedException {
         imu = hardwareMap.get(IMU.class, "imu");
@@ -135,9 +157,15 @@ public class HORSreplica extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
+
+
+
         double time;
         while (opModeIsActive()) {
             time = Timer.time(TimeUnit.MILLISECONDS);
+            if (gamepad1.yWasPressed() || gamepad2.yWasPressed()){
+                launchSystem();
+            }
 
             // Fast mode toggle (gamepad1 right bumper rising edge)
             if (gamepad1.right_bumper) {
