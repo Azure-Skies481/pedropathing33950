@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -66,7 +67,7 @@ public class HORSreplica extends LinearOpMode {
     public void imuAlign() {
         final double kP = 0.02;    // Proportional gain
         final double kD = 0.003;   // Derivative gain for damping/anti-overshoot (play with this value)
-        final double timeout = 1.5; // seconds
+        final double timeout = 0.5; // seconds
         final double minPower = 0.07; // minimum power to overcome static friction
         final double angleTolerance = 1.5; // degrees
         final double velocityTolerance = 0.2; // encoder ticks/sec
@@ -126,10 +127,10 @@ public class HORSreplica extends LinearOpMode {
             idle();
         }
         // Brake robot and hold heading
-        frontLeftMotor.setPower(0);
-        backLeftMotor.setPower(0);
-        frontRightMotor.setPower(0);
-        backRightMotor.setPower(0);
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);//was setPower(0)
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         sleep(150); //so that we can briefly stop before overloading controller
     }
 
