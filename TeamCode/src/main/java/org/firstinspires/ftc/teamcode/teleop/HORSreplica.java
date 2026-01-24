@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 @TeleOp
 @Configurable
 public class HORSreplica extends LinearOpMode {
-    // Removed ShootingHelp, using FlywheelModified below.
 
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
@@ -59,11 +58,11 @@ public class HORSreplica extends LinearOpMode {
     // Shooter control object
     private FlywheelModified flywheel;
 
-    // Rumble state
+    // Rumble state check
     private boolean wasVibratingLastLoop = false;
 
 
-    // --- Restored working IMU align logic ---
+    // IMU Align
     public void getImuAlignAngle() {
         imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
     }
@@ -107,6 +106,8 @@ public class HORSreplica extends LinearOpMode {
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+
+    //Launch System
     public void launchSystem() {
         stopMove();
         Timer.reset();
@@ -163,6 +164,7 @@ public class HORSreplica extends LinearOpMode {
         double time;
         while (opModeIsActive()) {
             time = Timer.time(TimeUnit.MILLISECONDS);
+            //Auto Launch System Check
             if (gamepad1.yWasPressed() || gamepad2.yWasPressed()){
                 launchSystem();
             }
@@ -196,7 +198,7 @@ public class HORSreplica extends LinearOpMode {
             frontRightMotor.setPower(frontRightPower);
             backRightMotor.setPower(backRightPower);
 
-            // ---- GAMEPAD1: Shooter RPM increment/decrement ----
+            // changing shooter power yo
             if (gamepad1.dpad_left || gamepad2.dpad_left) {
                 if (!dpadLeftWasPressed) {
                     power = Math.max(0, power - 50);
@@ -216,7 +218,7 @@ public class HORSreplica extends LinearOpMode {
                 dpadRightWasPressed = false;
             }
 
-            // --- Intake control \\
+            // Intake!!!
             // \
             double intakePower = 0.0;
             if (gamepad1.left_trigger > 0.05 || gamepad1.right_trigger > 0.05) {
@@ -237,7 +239,7 @@ public class HORSreplica extends LinearOpMode {
                 shooterToggleWasPressed = false;
             }
 
-            // Gate toggle (gamepad1 b rising edge)
+            // Gate toggle (satoru..., suguru...)
             if (gamepad1.b || gamepad2.b) {
                 if (!gateToggleWasPressed) {
                     gateOpen = !gateOpen;
@@ -247,7 +249,7 @@ public class HORSreplica extends LinearOpMode {
                 gateToggleWasPressed = false;
             }
 
-            // Reset IMU reference heading (gamepad1 a rising edge)
+            // Reset IMU point
             if (gamepad1.a || gamepad2.a) {
                 if (!imuReferenceResetWasPressed) {
                     imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
@@ -257,13 +259,13 @@ public class HORSreplica extends LinearOpMode {
                 imuReferenceResetWasPressed = false;
             }
 
-            // Shooter and Gate
+            // Gate Position logic
             gate.setPosition(gateOpen ? 0.5 : 0.36);
 
-            // Shooter logic update each loop
+            // update PID
             flywheel.update();
 
-            // -------- CONTROLLER RUMBLE LOGIC --------
+            // I like how it vibrates
             double targetRpm = flywheel.getTargetRPM();
             double currentRpm = flywheel.getCurrentRPM();
             boolean withinTolerance = Math.abs(targetRpm - currentRpm) <= 50.0;
@@ -278,11 +280,12 @@ public class HORSreplica extends LinearOpMode {
                 wasVibratingLastLoop = false;
             }
 
-            // IMU Align (gamepad1.x rising edge)
+            // IMU Align
             if (gamepad1.x) {
                 imuAlign();
             }
 
+            //Telepathy
             telemetry.addData("Shooter RPM", flywheel.getCurrentRPM());
             telemetry.addData("Shooter Target RPM", flywheel.getTargetRPM());
             telemetry.addData("Gate Open", gateOpen);

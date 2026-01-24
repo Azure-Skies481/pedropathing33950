@@ -86,6 +86,42 @@ public class AutoCloseBlue extends LinearOpMode {
         }
     }
 
+    double imuAlignAngle;
+    public void imuAlign() {
+        double timeout = 0.5;
+        ElapsedTime alignTimer = new ElapsedTime();
+        alignTimer.reset();
+
+        while (opModeIsActive()) {
+            double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+            double error = imuAlignAngle - imuAngle;
+            double power = 0.02 * error;
+
+            frontLeftMotor.setPower(-power);
+            backLeftMotor.setPower(-power);
+            frontRightMotor.setPower(power);
+            backRightMotor.setPower(power);
+
+            double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity()
+                    + frontRightMotor.getVelocity() + backRightMotor.getVelocity()) / 4;
+
+            telemetry.addData("imu: ", imuAngle);
+            telemetry.addData("error: ", error);
+            telemetry.update();
+
+            if (Math.abs(error) <= 2.5 && Math.abs(velocity) <= 0.3) {
+                telemetry.addData("skibidi", "yes it's done yo");
+                telemetry.update();
+                break;
+            }
+            if (alignTimer.seconds() > timeout) {
+                telemetry.addData("imuAlign", "Timeout reached, aborting");
+                telemetry.update();
+                break;
+            }
+            idle();
+        }
+    }
 
     public void turn (double angle){
         imu.initialize(parameters);
@@ -128,6 +164,8 @@ public class AutoCloseBlue extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(parameters);
+
+        imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
         frontLeftMotor = hardwareMap.get(DcMotorEx.class, "frontleftMotor");
         backLeftMotor = hardwareMap.get(DcMotorEx.class, "backleftMotor");
         frontRightMotor = hardwareMap.get(DcMotorEx.class, "frontrightMotor");
@@ -161,24 +199,28 @@ public class AutoCloseBlue extends LinearOpMode {
 
 
         ElapsedTime timer = new ElapsedTime();
+        int skibidi = 1300;
         while (opModeIsActive()){
             time = timer.time(TimeUnit.MILLISECONDS);
 
-            shooter.setPower(shootingHelp.getPID(shooter, 1000));
 
-            if (Math.abs(3500 - time) <= 50) {
+
+            shooter.setPower(shootingHelp.getPID(shooter, skibidi));
+
+            if (Math.abs(4000 - time) <= 50) {
                 gate.setPosition(0.5);
             }
-            if (Math.abs(3900 - time) <= 50){
+            if (Math.abs(4400 - time) <= 50){
                 intake.setPower(-1);
             }
-            if (Math.abs(3920- time) <= 50){
+            if (Math.abs(4420- time) <= 50){
+                skibidi = 1150;
                 intake.setPower(0);
             }
-            if (Math.abs(8000 - time) <= 50){
+            if (Math.abs(8500 - time) <= 50){
                 intake.setPower(-1);
             }
-            if (Math.abs(9000 - time) <= 50){
+            if (Math.abs(9500 - time) <= 50){
                 intake.setPower(0);
                 shooter.setPower(0);
                 break;

@@ -153,7 +153,7 @@ public class AutoFarRed extends LinearOpMode{
 
             time = timer.time(TimeUnit.MILLISECONDS);
 
-            shooter.setPower(shootingHelp.getPID(shooter, 1000));
+            shooter.setPower(shootingHelp.getPID(shooter, 1650));
 
             if (Math.abs(3500 - time) <= 50) {
                 gate.setPosition(0.5);
