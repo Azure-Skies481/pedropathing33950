@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 @TeleOp
 @Configurable
 public class HORSreplica extends LinearOpMode {
+    // Removed ShootingHelp, using FlywheelModified below.
 
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
@@ -54,84 +55,55 @@ public class HORSreplica extends LinearOpMode {
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
     ElapsedTime Timer = new ElapsedTime();
 
+    // Shooter control object
     private FlywheelModified flywheel;
 
+    // Rumble state
     private boolean wasVibratingLastLoop = false;
 
     public void getImuAlignAngle() {
         imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
     }
 
-    // Improved IMU align function with simple braking (P controller + brake when done)
-    // Will brake and hold the robot at heading after reaching target
+    // --- Restored working IMU align logic ---
     public void imuAlign() {
-        final double kP = 0.02;    // Proportional gain
-        final double kD = 0.003;   // Derivative gain for damping/anti-overshoot (play with this value)
-        final double timeout = 0.5; // seconds
-        final double minPower = 0.07; // minimum power to overcome static friction
-        final double angleTolerance = 1.5; // degrees
-        final double velocityTolerance = 0.2; // encoder ticks/sec
-
-        ElapsedTime timer = new ElapsedTime();
-        timer.reset();
-        double lastError = 0;
-        double lastTime = timer.seconds();
+        double timeout = 0.5;
+        ElapsedTime alignTimer = new ElapsedTime();
+        alignTimer.reset();
 
         while (opModeIsActive()) {
             double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
             double error = imuAlignAngle - imuAngle;
-            double currentTime = timer.seconds();
-            double deltaTime = currentTime - lastTime;
-            double derivative = 0;
-            if (deltaTime > 0) {
-                derivative = (error - lastError) / deltaTime;
-            }
+            double power = 0.02 * error;
 
-            double turnPower = kP * error + kD * derivative;
+            frontLeftMotor.setPower(-power);
+            backLeftMotor.setPower(-power);
+            frontRightMotor.setPower(power);
+            backRightMotor.setPower(power);
 
-            // Clamp power for very small error (to prevent micro-oscillations)
-            if (Math.abs(turnPower) < minPower && Math.abs(error) > angleTolerance) {
-                turnPower = Math.signum(turnPower) * minPower;
-            }
-            if (Math.abs(error) < angleTolerance) {
-                turnPower = 0;
-            }
+            double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity()
+                    + frontRightMotor.getVelocity() + backRightMotor.getVelocity()) / 4;
 
-            frontLeftMotor.setPower(-turnPower);
-            backLeftMotor.setPower(-turnPower);
-            frontRightMotor.setPower(turnPower);
-            backRightMotor.setPower(turnPower);
-
-            // Get average velocity for braking test
-            double velocity = (Math.abs(frontLeftMotor.getVelocity()) + Math.abs(backLeftMotor.getVelocity())
-                    + Math.abs(frontRightMotor.getVelocity()) + Math.abs(backRightMotor.getVelocity())) / 4;
-
-            telemetry.addData("IMU Angle", imuAngle);
-            telemetry.addData("Target Angle", imuAlignAngle);
-            telemetry.addData("Error", error);
-            telemetry.addData("Turn Power", turnPower);
-            telemetry.addData("Velocity", velocity);
+            telemetry.addData("imu: ", imuAngle);
+            telemetry.addData("error: ", error);
             telemetry.update();
 
-            // Check if in angle tolerance and then if the robot is stopped
-            if (Math.abs(error) < angleTolerance && velocity < velocityTolerance) {
-                break;
-            }
-            if (timer.seconds() > timeout) {
-                telemetry.addData("IMU Align", "Timeout reached");
+            if (Math.abs(error) <= 2.5 && Math.abs(velocity) <= 0.3) {
+                telemetry.addData("skibidi", "yes it's done yo");
                 telemetry.update();
                 break;
             }
-            lastError = error;
-            lastTime = currentTime;
+            if (alignTimer.seconds() > timeout) {
+                telemetry.addData("imuAlign", "Timeout reached, aborting");
+                telemetry.update();
+                break;
+            }
             idle();
         }
-        // Brake robot and hold heading
-        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);//was setPower(0)
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        sleep(150); //so that we can briefly stop before overloading controller
     }
 
     @Override
@@ -155,6 +127,7 @@ public class HORSreplica extends LinearOpMode {
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        // Use FlywheelModified shooter control
         flywheel = new FlywheelModified(shooter, telemetry);
         flywheel.setTargetRPM(2600);
 
@@ -215,7 +188,8 @@ public class HORSreplica extends LinearOpMode {
                 dpadRightWasPressed = false;
             }
 
-            // --- Intake control ---
+            // --- Intake control \\
+            // \
             double intakePower = 0.0;
             if (gamepad1.left_trigger > 0.05 || gamepad1.right_trigger > 0.05) {
                 intakePower = gamepad1.left_trigger - gamepad1.right_trigger;
@@ -224,7 +198,7 @@ public class HORSreplica extends LinearOpMode {
             }
             intake.setPower(intakePower);
 
-            // Toggle shooter
+            //togelele shoooter
             if (gamepad1.dpad_down || gamepad2.dpad_down) {
                 if (!shooterToggleWasPressed) {
                     shooterToggle = !shooterToggle;
@@ -235,7 +209,7 @@ public class HORSreplica extends LinearOpMode {
                 shooterToggleWasPressed = false;
             }
 
-            // Gate toggle
+            // Gate toggle (gamepad1 b rising edge)
             if (gamepad1.b || gamepad2.b) {
                 if (!gateToggleWasPressed) {
                     gateOpen = !gateOpen;
@@ -245,7 +219,7 @@ public class HORSreplica extends LinearOpMode {
                 gateToggleWasPressed = false;
             }
 
-            // Reset IMU reference heading
+            // Reset IMU reference heading (gamepad1 a rising edge)
             if (gamepad1.a || gamepad2.a) {
                 if (!imuReferenceResetWasPressed) {
                     imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
@@ -258,7 +232,7 @@ public class HORSreplica extends LinearOpMode {
             // Shooter and Gate
             gate.setPosition(gateOpen ? 0.5 : 0.36);
 
-            // Shooter logic
+            // Shooter logic update each loop
             flywheel.update();
 
             // -------- CONTROLLER RUMBLE LOGIC --------
