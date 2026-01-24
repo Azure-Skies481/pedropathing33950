@@ -56,14 +56,14 @@ Examples below show placeholder values and TODO tags where you must fill in real
 
 
             // TODO: set measured robot dimensions (inches)
-            .robotWidth( /* ROBOT_WIDTH_INCHES / 17.1 )   // replace 12.0 with your measured width
-            .robotLength( / ROBOT_LENGTH_INCHES / 15.5 ) // replace 12.0 with your measured length
-
+            .robotWidth( 15.5)   // replace 12.0 with your measured width
+            .robotLength( 17.1 ) // replace 12.0 with your measured length
+            /*
             // TODO: replace the multipliers below with the values obtained from the tuners
             // Example placeholders (you must run tuners and replace these):
-            .forwardTicksToInches( / forwardMultiplier / 1.0 )
+            .forwardTicksToInches(4.89005 )
             .strafeTicksToInches(  / strafeMultiplier  / 1.0 )
-            .turnTicksToInches(    / turnMultiplier    */ 1.0 );
+            .turnTicksToInches(    / turnMultiplier     1.0  )*/   ;
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
