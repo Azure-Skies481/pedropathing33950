@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.Servo;
-
+import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp
@@ -28,11 +28,6 @@ public class FieldcenteredTest extends LinearOpMode {
     boolean shooterToggle = false;
     double power = 1400;
     double drivespeed;
-
-
-
-
-
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -75,6 +70,8 @@ public class FieldcenteredTest extends LinearOpMode {
         imu.initialize(parameters);
 
         waitForStart();
+
+
 
         if (isStopRequested()) return;
 
@@ -162,6 +159,8 @@ public class FieldcenteredTest extends LinearOpMode {
             telemetry.addData("Shooter Target Velocity", power);
             telemetry.addData("Gate Open?", gateOpen);
             telemetry.update();
+
+
         }
     }
 }
