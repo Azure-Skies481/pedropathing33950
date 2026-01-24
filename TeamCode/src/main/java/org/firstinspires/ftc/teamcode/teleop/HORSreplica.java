@@ -62,11 +62,11 @@ public class HORSreplica extends LinearOpMode {
     // Rumble state
     private boolean wasVibratingLastLoop = false;
 
+
+    // --- Restored working IMU align logic ---
     public void getImuAlignAngle() {
         imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
     }
-
-    // --- Restored working IMU align logic ---
     public void imuAlign() {
         double timeout = 0.5;
         ElapsedTime alignTimer = new ElapsedTime();

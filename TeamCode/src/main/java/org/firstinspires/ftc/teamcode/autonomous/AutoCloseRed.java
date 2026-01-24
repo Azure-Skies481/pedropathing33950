@@ -116,12 +116,47 @@ public class AutoCloseRed extends LinearOpMode{
             }
         }
     }
+    double imuAlignAngle;
+    public void imuAlign() {
+        double timeout = 0.5;
+        ElapsedTime alignTimer = new ElapsedTime();
+        alignTimer.reset();
+
+        while (opModeIsActive()) {
+            double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+            double error = imuAlignAngle - imuAngle;
+            double power = 0.02 * error;
+
+            frontLeftMotor.setPower(-power);
+            backLeftMotor.setPower(-power);
+            frontRightMotor.setPower(power);
+            backRightMotor.setPower(power);
+
+            double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity()
+                    + frontRightMotor.getVelocity() + backRightMotor.getVelocity()) / 4;
+
+            telemetry.addData("imu: ", imuAngle);
+            telemetry.addData("error: ", error);
+            telemetry.update();
+
+            if (Math.abs(error) <= 2.5 && Math.abs(velocity) <= 0.3) {
+                telemetry.addData("skibidi", "yes it's done yo");
+                telemetry.update();
+                break;
+            }
+            if (alignTimer.seconds() > timeout) {
+                telemetry.addData("imuAlign", "Timeout reached, aborting");
+                telemetry.update();
+                break;
+            }
+            idle();
+        }
+    }
     // positive = left. negative = right
 
 
     @Override
     public void runOpMode() throws InterruptedException {
-
 
         frontLeftMotor = hardwareMap.get(DcMotorEx.class, "frontleftMotor");
         backLeftMotor = hardwareMap.get(DcMotorEx.class,"backleftMotor");
@@ -130,6 +165,8 @@ public class AutoCloseRed extends LinearOpMode{
 
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(parameters);
+
+        imuAlignAngle =  imu.getRobotYawPitchRollAngles().getYaw();
 
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -170,28 +207,26 @@ public class AutoCloseRed extends LinearOpMode{
 
         double actualspeed = shooter.getVelocity();
 
-        moveForward(1200);
-
+        moveForward(1450);
+        imuAlign();
 
         ElapsedTime timer = new ElapsedTime();
         while (opModeIsActive()){
             time = timer.time(TimeUnit.MILLISECONDS);
-
-            shooter.setPower(shootingHelp.getPID(shooter, 1240));
-
-            if (Math.abs(3500 - time) <= 50) {
+            shooter.setPower(shootingHelp.getPID(shooter, 1300));
+            if (Math.abs(4000 - time) <= 50) {
                 gate.setPosition(0.5);
             }
-            if (Math.abs(3900 - time) <= 50){
+            if (Math.abs(4400 - time) <= 50){
                 intake.setPower(-1);
             }
-            if (Math.abs(3920 - time) <= 50){
+            if (Math.abs(4410 - time) <= 50){
                 intake.setPower(0);
             }
-            if (Math.abs(8000 - time) <= 50){
+            if (Math.abs(8500 - time) <= 50){
                 intake.setPower(-1);
             }
-            if (Math.abs(9000 - time) <= 50){
+            if (Math.abs(9500 - time) <= 50){
                 intake.setPower(0);
                 shooter.setPower(0);
                 break;
