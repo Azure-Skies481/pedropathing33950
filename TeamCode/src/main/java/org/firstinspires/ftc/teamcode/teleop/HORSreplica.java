@@ -114,7 +114,7 @@ public class HORSreplica extends LinearOpMode {
         double skibidi = Timer.time(TimeUnit.MILLISECONDS);
 
         gate.setPosition(0.5);
-        intake.setPower(0.85);
+        intake.setPower(-0.85);
         while (skibidi<1000){
             skibidi = Timer.time(TimeUnit.MILLISECONDS);
             flywheel.setTargetRPM(power);
