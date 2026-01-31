@@ -1,20 +1,34 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.Mecanum;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.ftc.localization.Encoder;
+import com.pedropathing.ftc.localization.constants.PinpointConstants;
 import com.pedropathing.paths.PathConstraints;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 // NOTE: adjust these imports if DriveEncoderConstants / Encoder are in a different package in your project
 import com.pedropathing.ftc.localization.constants.DriveEncoderConstants;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 public class Constants {
-    public static FollowerConstants followerConstants = new FollowerConstants().mass(8.2);
+    public static FollowerConstants followerConstants = new FollowerConstants()
+            .mass(8.2)
+            .forwardZeroPowerAcceleration(-49.1297)
+            .lateralZeroPowerAcceleration(-44.325)
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.1,0,0,0))
+            .headingPIDFCoefficients(new PIDFCoefficients(0, 0.0000001, 0, 0.07))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.1,0.0,0.01,0.6,0.0))
+            .centripetalScaling(0.005);
 
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
@@ -39,11 +53,14 @@ Examples below show placeholder values and TODO tags where you must fill in real
             .rightRearMotorName("backrightMotor")
             .leftRearMotorName("backleftMotor")
             .leftFrontMotorName("frontleftMotor")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD) //reversed
 
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE) //reversed
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .xVelocity(62.037)
+            .yVelocity(52.215);
+    /*
     public static DriveEncoderConstants localizerConstants = new DriveEncoderConstants()
             // TODO: replace these with your actual motor/encoder names in the hardwareMap
             .rightFrontMotorName("frontrightMotor")   // e.g. "right_front_motor"
@@ -63,15 +80,28 @@ Examples below show placeholder values and TODO tags where you must fill in real
 
             // TODO: replace the multipliers below with the values obtained from the tuners
             // Example placeholders (you must run tuners and replace these):
-            /*
+
             .strafeTicksToInches( 1.0)//-3.741508 /
             .turnTicksToInches(1.0)   ; //0.3225698 /
             */
 
+    public static PinpointConstants localizerConstants = new PinpointConstants()
+            .forwardPodY(-1.1)
+            .strafePodX(7.25)
+            .distanceUnit(DistanceUnit.INCH)
+            .hardwareMapName("pinpoint")
+            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
+            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+
+
+
+
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
+                .pinpointLocalizer(localizerConstants)
                 // Register the drive encoder localizer so the follower uses your encoder-based localization
-                .driveEncoderLocalizer(localizerConstants)
+                //.driveEncoderLocalizer(localizerConstants)
                 .mecanumDrivetrain(driveConstants)
                 .pathConstraints(pathConstraints)
                 .build();
