@@ -182,6 +182,6 @@ public class AutoCloseRedPedro extends LinearOpMode {
     }
 
     private Follower initFollower() {
-        return null; // replace with your follower initialization using drivetrain and constraints
+        return null; // drivetrain and constraints
     }
 }
