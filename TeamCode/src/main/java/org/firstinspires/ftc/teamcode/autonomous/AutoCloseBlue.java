@@ -213,8 +213,7 @@ public class AutoCloseBlue extends LinearOpMode {
             if (Math.abs(4400 - time) <= 50){
                 intake.setPower(-1);
             }
-            if (Math.abs(4420- time) <= 50){
-                skibidi = 1150;
+            if (Math.abs(4410- time) <= 50){
                 intake.setPower(0);
             }
             if (Math.abs(8500 - time) <= 50){

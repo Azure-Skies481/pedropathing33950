@@ -220,17 +220,9 @@ public class AutoCloseRed extends LinearOpMode{
         ElapsedTime timer = new ElapsedTime();
         while (opModeIsActive()){
             time = timer.time(TimeUnit.MILLISECONDS);
-            //shooter.setVelocity(shootingHelp.getPID(shooter, 1300));
-            flywheel.setShooterOn(true);
-            flywheel.setTargetRpm(2000);
-            flywheel.update();
-            telemetry.addData("Is flywheel on?: ", flywheel.isShooterOn());
-            telemetry.addData("Flywheel Speed: ", flywheel.getCurrentRPM());
-            telemetry.addData("time from start", time);
-            telemetry.update();
+            shooter.setVelocity(shootingHelp.getPID(shooter, 1300));
+
             if (Math.abs(4000 - time) <= 50) {
-                telemetry.addData("gateOpen", "yes");
-                telemetry.update();
                 gate.setPosition(0.5);
             }
             if (Math.abs(4400 - time) <= 50){
@@ -244,7 +236,6 @@ public class AutoCloseRed extends LinearOpMode{
             }
             if (Math.abs(9500 - time) <= 50){
                 intake.setPower(0);
-                flywheel.setShooterOn(false);
                 shooter.setVelocity(0);
                 break;
             }
