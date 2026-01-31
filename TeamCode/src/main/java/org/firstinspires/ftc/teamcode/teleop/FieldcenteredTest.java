@@ -39,7 +39,6 @@ public class FieldcenteredTest extends LinearOpMode {
         DcMotor backLeftMotor = hardwareMap.dcMotor.get("backleftMotor");
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontrightMotor");
         DcMotor backRightMotor = hardwareMap.dcMotor.get("backrightMotor");
-
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
         // reverse the left side instead.
@@ -70,8 +69,6 @@ public class FieldcenteredTest extends LinearOpMode {
         imu.initialize(parameters);
 
         waitForStart();
-
-
 
         if (isStopRequested()) return;
 
