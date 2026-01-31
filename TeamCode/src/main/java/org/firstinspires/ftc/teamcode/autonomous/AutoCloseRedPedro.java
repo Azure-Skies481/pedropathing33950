@@ -56,6 +56,13 @@ public class AutoCloseRedPedro extends LinearOpMode {
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         follower = initFollower();
+        if (follower == null) {
+            telemetry.addLine("Follower not initialized");
+            telemetry.update();
+            waitForStart();
+            return;
+        }
+
         flywheel = new FlywheelModified(shooter, telemetry, battery);
 
         PathChain goForward = follower.pathBuilder().addPath(
@@ -175,6 +182,6 @@ public class AutoCloseRedPedro extends LinearOpMode {
     }
 
     private Follower initFollower() {
-        throw new IllegalStateException("Implement follower initialization with your drivetrain and constraints");
+        return null; // replace with your follower initialization using drivetrain and constraints
     }
 }
