@@ -175,6 +175,6 @@ public class AutoCloseRedPedro extends LinearOpMode {
     }
 
     private Follower initFollower() {
-        throw new IllegalStateException("Follower init notwokr sdlkfksdk ");
+        throw new IllegalStateException("Implement follower initialization with your drivetrain and constraints");
     }
 }
