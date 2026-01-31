@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,6 +13,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.Sorter;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
@@ -21,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 @Autonomous
 @Configurable
 public class AutoCloseRed extends LinearOpMode{
+    private FlywheelModified flywheel;
     ShootingHelp shootingHelp = new ShootingHelp();
 
     private DcMotorEx intake = null;
@@ -31,6 +34,7 @@ public class AutoCloseRed extends LinearOpMode{
     private double power = 1550;
     private double drivespeed;
 
+
     @Sorter(sort = 0) public static double shooterVelocity = 1000;
 
     private boolean aura = true;
@@ -40,6 +44,7 @@ public class AutoCloseRed extends LinearOpMode{
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
+
 
     public void moveForward(double amount) {
         resetEncoders();
@@ -184,6 +189,7 @@ public class AutoCloseRed extends LinearOpMode{
 
         shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
+        flywheel = new FlywheelModified(shooter, telemetry);
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -214,7 +220,10 @@ public class AutoCloseRed extends LinearOpMode{
         ElapsedTime timer = new ElapsedTime();
         while (opModeIsActive()){
             time = timer.time(TimeUnit.MILLISECONDS);
-            shooter.setPower(shootingHelp.getPID(shooter, skibidi));
+            flywheel.setTargetRPM(1300);
+            telemetry.addData("Is flywheel on?: ", flywheel.isShooterOn());
+            telemetry.addData("Flywheel Speed: ", flywheel.getCurrentRPM());
+            telemetry.update();
             if (Math.abs(4000 - time) <= 50) {
                 gate.setPosition(0.5);
             }
@@ -222,16 +231,14 @@ public class AutoCloseRed extends LinearOpMode{
                 intake.setPower(-1);
             }
             if (Math.abs(4410 - time) <= 50){
-                skibidi -= 150;
                 intake.setPower(0);
-
             }
             if (Math.abs(8500 - time) <= 50){
                 intake.setPower(-1);
             }
             if (Math.abs(9500 - time) <= 50){
                 intake.setPower(0);
-                shooter.setPower(0);
+                flywheel.setTargetRpm(0);
                 break;
             }
 
