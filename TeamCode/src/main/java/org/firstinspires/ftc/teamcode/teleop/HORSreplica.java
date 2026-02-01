@@ -222,9 +222,9 @@ public class HORSreplica extends LinearOpMode {
             // \
             double intakePower = 0.0;
             if (gamepad1.left_trigger > 0.05 || gamepad1.right_trigger > 0.05) {
-                intakePower = gamepad1.left_trigger - gamepad1.right_trigger;
+                intakePower = gamepad1.left_trigger*0.5 - gamepad1.right_trigger;
             } else {
-                intakePower = gamepad2.left_trigger - gamepad2.right_trigger * 0.85;
+                intakePower = gamepad2.left_trigger*0.5 - gamepad2.right_trigger * 1;
             }
             intake.setPower(intakePower);
 

@@ -173,6 +173,6 @@ public class AutoFarRed extends LinearOpMode{
                 break;
             }
         }
-        moveForward(-350);
+        moveForward(-450);
     }
 }

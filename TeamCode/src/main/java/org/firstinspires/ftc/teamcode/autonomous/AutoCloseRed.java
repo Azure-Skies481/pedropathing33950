@@ -216,11 +216,15 @@ public class AutoCloseRed extends LinearOpMode{
         moveForward(1450);
         imuAlign();
 
+
+
         int skibidi = 1300;
         ElapsedTime timer = new ElapsedTime();
+
+
         while (opModeIsActive()){
-            time = timer.time(TimeUnit.MILLISECONDS);
-            shooter.setVelocity(shootingHelp.getPID(shooter, 1300));
+             time = timer.time(TimeUnit.MILLISECONDS);
+             shooter.setPower(shootingHelp.getPID(shooter, 1300));
 
             if (Math.abs(4000 - time) <= 50) {
                 gate.setPosition(0.5);
@@ -240,6 +244,7 @@ public class AutoCloseRed extends LinearOpMode{
                 break;
             }
 
+
             //test stuff
             /*
             boolean atTargetSpeed = false;
@@ -249,8 +254,10 @@ public class AutoCloseRed extends LinearOpMode{
             }*/
 
 
+
+
         }
-        turn(90);
+        turn(-90);
         moveForward(900);
 
     }
