@@ -133,18 +133,18 @@ public class HORSreplica extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(parameters);
-        frontLeftMotor = (DcMotorEx) hardwareMap.dcMotor.get("frontleftMotor");
-        backLeftMotor = (DcMotorEx) hardwareMap.dcMotor.get("backleftMotor");
-        frontRightMotor = (DcMotorEx) hardwareMap.dcMotor.get("frontrightMotor");
-        backRightMotor = (DcMotorEx) hardwareMap.dcMotor.get("backrightMotor");
+        frontLeftMotor = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
+        backLeftMotor = (DcMotorEx) hardwareMap.dcMotor.get("backLeft");
+        frontRightMotor = (DcMotorEx) hardwareMap.dcMotor.get("frontRight");
+        backRightMotor = (DcMotorEx) hardwareMap.dcMotor.get("backRight");
 
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        intake = hardwareMap.get(DcMotorEx.class, "intakemotor");
-        shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
+        intake = hardwareMap.get(DcMotorEx.class, "intakeMotor");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         gate = hardwareMap.get(Servo.class, "gateServo");
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
