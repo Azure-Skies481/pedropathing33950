@@ -21,6 +21,7 @@ public class AutoCloseRedPedro extends LinearOpMode {
 
     private DcMotorEx intake;
     private DcMotorEx shooter;
+    private DcMotorEx shooter2;
     private Servo gate;
     private FlywheelModified flywheel;
     private VoltageSensor battery;
@@ -33,10 +34,10 @@ public class AutoCloseRedPedro extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        frontLeftMotor  = hardwareMap.get(DcMotorEx.class, "frontleftMotor");
-        backLeftMotor   = hardwareMap.get(DcMotorEx.class,"backleftMotor");
-        frontRightMotor = hardwareMap.get(DcMotorEx.class,"frontrightMotor");
-        backRightMotor  = hardwareMap.get(DcMotorEx.class,"backrightMotor");
+        frontLeftMotor  = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        backLeftMotor   = hardwareMap.get(DcMotorEx.class,"backLeft");
+        frontRightMotor = hardwareMap.get(DcMotorEx.class,"frontRight");
+        backRightMotor  = hardwareMap.get(DcMotorEx.class,"backRight");
 
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(parameters);
@@ -46,8 +47,9 @@ public class AutoCloseRedPedro extends LinearOpMode {
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        intake = hardwareMap.get(DcMotorEx.class, "intakemotor");
-        shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
+        intake = hardwareMap.get(DcMotorEx.class, "intakeMotor");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         gate = hardwareMap.get(Servo.class, "gateServo");
         battery = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
@@ -119,7 +121,7 @@ public class AutoCloseRedPedro extends LinearOpMode {
         if (isStopRequested()) return;
 
         gate.setPosition(0.36);
-        flywheel.setTargetRpm(1300);
+        flywheel.setTargetRPM(1300);
         flywheel.setShooterOn(true);
 
         long spinupStart = System.currentTimeMillis();

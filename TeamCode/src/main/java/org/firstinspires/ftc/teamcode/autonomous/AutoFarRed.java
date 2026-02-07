@@ -24,6 +24,7 @@ public class AutoFarRed extends LinearOpMode{
     ShootingHelp shootingHelp = new ShootingHelp();
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
+    private DcMotorEx shooter2;
     private Servo gate = null; //new servo js added
     private double maxspeed = 2800;
     private double feedback = 0.001;
@@ -121,10 +122,10 @@ public class AutoFarRed extends LinearOpMode{
     public void runOpMode() throws InterruptedException {
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(parameters);
-        frontLeftMotor = hardwareMap.get(DcMotorEx.class, "frontleftMotor");
-        backLeftMotor = hardwareMap.get(DcMotorEx.class, "backleftMotor");
-        frontRightMotor = hardwareMap.get(DcMotorEx.class, "frontrightMotor");
-        backRightMotor = hardwareMap.get(DcMotorEx.class, "backrightMotor");
+        frontLeftMotor = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        backLeftMotor = hardwareMap.get(DcMotorEx.class, "backLeft");
+        frontRightMotor = hardwareMap.get(DcMotorEx.class, "frontRight");
+        backRightMotor = hardwareMap.get(DcMotorEx.class, "backRight");
 
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -136,9 +137,10 @@ public class AutoFarRed extends LinearOpMode{
         backLeftMotor.setTargetPosition(0);
         backRightMotor.setTargetPosition(0);
 
-        intake = hardwareMap.get(DcMotorEx.class, "intakemotor");
+        intake = hardwareMap.get(DcMotorEx.class, "intakeMotor");
 
-        shooter = hardwareMap.get(DcMotorEx.class, "shootermotor");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter2");
+        shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
