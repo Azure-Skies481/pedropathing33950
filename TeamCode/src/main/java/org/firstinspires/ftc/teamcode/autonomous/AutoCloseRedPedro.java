@@ -31,6 +31,11 @@ public class AutoCloseRedPedro extends LinearOpMode {
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
+    private final Pose scoringPose = new Pose(84,84,Math.toRadians(45));
+    private final Pose startingPose = new Pose(123,123,Math.toRadians(45));
+    private final Pose pickup1Pose = new Pose(100, 84, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2Pose = new Pose(100, 60, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose pickup3Pose = new Pose(100, 35, Math.toRadians(0));
 
     @Override
     public void runOpMode() throws InterruptedException {

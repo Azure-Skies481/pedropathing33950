@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -12,6 +13,8 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.Sorter;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -22,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class HORSreplica extends LinearOpMode {
 
     private DcMotorEx intake = null;
+    private Pose startPosition;
     private DcMotorEx shooter = null;
     private DcMotorEx shooter2 = null; // NEW: Second shooter motor
     private Servo gate = null;
@@ -138,6 +142,7 @@ public class HORSreplica extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(parameters);
+
 
         frontLeftMotor = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
         backLeftMotor = (DcMotorEx) hardwareMap.dcMotor.get("backLeft");
