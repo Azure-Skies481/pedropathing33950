@@ -126,7 +126,7 @@ public class HORSreplica extends LinearOpMode {
         Timer.reset();
         double skibidi = Timer.time(TimeUnit.MILLISECONDS);
 
-        gate.setPosition(0.2);
+        gate.setPosition(0.5);
         intake.setPower(-0.85);
         while (skibidi < 1000) {
             skibidi = Timer.time(TimeUnit.MILLISECONDS);
@@ -134,7 +134,7 @@ public class HORSreplica extends LinearOpMode {
             flywheel.update(); // Keep updating during launch
         }
         intake.setPower(0);
-        gate.setPosition(0.0);
+        gate.setPosition(0.45);
     }
 
     public void stopMove() {
@@ -307,7 +307,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate position logic
-            gate.setPosition(gateOpen ? 0.2 : 0.0);
+            gate.setPosition(gateOpen ? 0.5 : 0.45);
 
             // Update PIDF controller
             flywheel.update();
