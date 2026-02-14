@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -15,6 +16,7 @@ import com.bylazar.configurables.annotations.Sorter;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -25,7 +27,11 @@ import java.util.concurrent.TimeUnit;
 public class HORSreplica extends LinearOpMode {
 
     private DcMotorEx intake = null;
-    private Pose startPosition;
+    public static Pose startPosition;
+    private Follower follower;
+    private Pose currentPosition;
+    private boolean aimed = true;
+
     private DcMotorEx shooter = null;
     private DcMotorEx shooter2 = null; // NEW: Second shooter motor
     private Servo gate = null;
@@ -55,7 +61,7 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1)
-    public static int power = 2850;  // DEFAULT RPM IS 2850
+    public static int power = 500;  // DEFAULT RPM IS 2850
 
     private IMU imu = null;
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
@@ -120,7 +126,7 @@ public class HORSreplica extends LinearOpMode {
         Timer.reset();
         double skibidi = Timer.time(TimeUnit.MILLISECONDS);
 
-        gate.setPosition(0.5);
+        gate.setPosition(0.2);
         intake.setPower(-0.85);
         while (skibidi < 1000) {
             skibidi = Timer.time(TimeUnit.MILLISECONDS);
@@ -128,7 +134,7 @@ public class HORSreplica extends LinearOpMode {
             flywheel.update(); // Keep updating during launch
         }
         intake.setPower(0);
-        gate.setPosition(0.36);
+        gate.setPosition(0.0);
     }
 
     public void stopMove() {
@@ -140,6 +146,7 @@ public class HORSreplica extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        //follower = Constants.createFollower(hardwareMap);
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(parameters);
 
@@ -156,6 +163,7 @@ public class HORSreplica extends LinearOpMode {
 
         intake = hardwareMap.get(DcMotorEx.class, "intakeMotor");
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // NEW: Initialize second shooter motor
         try {
@@ -176,7 +184,7 @@ public class HORSreplica extends LinearOpMode {
         }
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // NEW: Set shooter2 direction (opposite to shooter for counter-rotation)
         if (shooter2 != null) {
@@ -185,8 +193,8 @@ public class HORSreplica extends LinearOpMode {
 
         // NEW: Initialize FlywheelModified with both motors
         flywheel = new FlywheelModified(shooter, shooter2, telemetry, voltageSensor);
-        flywheel.setTargetRPM(2600);
-        flywheel.setShooterOn(true); // Start with shooter on
+        flywheel.setTargetRPM(2000);
+        flywheel.setShooterOn(false); // Start with shooter on
 
         imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
 
@@ -199,6 +207,7 @@ public class HORSreplica extends LinearOpMode {
 
         double time;
         while (opModeIsActive()) {
+            //currentPosition = follower.getPose();
             time = Timer.time(TimeUnit.MILLISECONDS);
 
             // Auto Launch System Check
@@ -275,6 +284,7 @@ public class HORSreplica extends LinearOpMode {
             } else {
                 shooterToggleWasPressed = false;
             }
+            shooter2.setPower(-shooter.getPower());
 
             // Gate toggle
             if (gamepad1.b || gamepad2.b) {
@@ -297,7 +307,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate position logic
-            gate.setPosition(gateOpen ? 0.5 : 0.36);
+            gate.setPosition(gateOpen ? 0.2 : 0.0);
 
             // Update PIDF controller
             flywheel.update();
@@ -321,11 +331,14 @@ public class HORSreplica extends LinearOpMode {
             if (gamepad1.x) {
                 imuAlign();
             }
+            //aimed = Math.abs(currentPosition.getHeading()-45)<15 || Math.abs(currentPosition.getHeading()-135)<15;
 
             // Telemetry
+            //telemetry.addData("Aimed? ", aimed ? "✓" : "✗");
             telemetry.addData("Shooter RPM", "%.0f", flywheel.getCurrentRPM());
             telemetry.addData("Target RPM", "%.0f", flywheel.getTargetRPM());
             telemetry.addData("Power", "%.2f", flywheel.getLastAppliedPower());
+
             telemetry.addData("At Speed", flywheel.isAtTarget() ? "✓" : "✗");
             telemetry.addData("Gate Open", gateOpen);
             telemetry.addData("Shooter On", flywheel.isShooterOn());
