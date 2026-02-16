@@ -35,7 +35,7 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx shooter = null;
     private DcMotorEx shooter2 = null;
     private Servo gate = null;
-    private VoltageSensor voltageSensor = null;
+    private VoltageSensor voltageSensor = null;//fix
 
     private double driveSpeed;
 
