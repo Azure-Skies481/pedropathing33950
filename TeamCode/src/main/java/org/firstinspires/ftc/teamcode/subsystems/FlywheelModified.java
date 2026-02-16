@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class FlywheelModified {
 
     private final DcMotorEx shooter;
-    private final DcMotor shooter2; // mirrors power (opposite direction via motor direction)
+    private final DcMotorEx shooter2; // mirrors power (opposite direction via motor direction)
     private final Telemetry telemetry; // nullable
     private final VoltageSensor voltageSensor; // nullable
     private final ElapsedTime timer = new ElapsedTime();
@@ -52,13 +52,25 @@ public class FlywheelModified {
 
     /**
      * Constructor for dual-motor setup (shooter + shooter2)
+     * IMPORTANT: Motor directions should be configured BEFORE passing to this constructor.
+     * shooter and shooter2 should spin in opposite directions - configure via setDirection() in OpMode.
      */
     public FlywheelModified(DcMotor shooter, DcMotor shooter2, Telemetry telemetry, VoltageSensor voltageSensor) {
         if (!(shooter instanceof DcMotorEx)) {
             throw new IllegalArgumentException("Primary shooter must be a DcMotorEx");
         }
         this.shooter = (DcMotorEx) shooter;
-        this.shooter2 = shooter2;
+
+        // Handle shooter2 - can be DcMotor or DcMotorEx
+        if (shooter2 != null && shooter2 instanceof DcMotorEx) {
+            this.shooter2 = (DcMotorEx) shooter2;
+        } else if (shooter2 != null) {
+            // If it's a regular DcMotor, we can still use it but cast carefully
+            this.shooter2 = (DcMotorEx) shooter2;
+        } else {
+            this.shooter2 = null;
+        }
+
         this.telemetry = telemetry;
         this.voltageSensor = voltageSensor;
 
@@ -105,6 +117,9 @@ public class FlywheelModified {
     }
 
     public void setTargetRPM(double rpm) {
+        // Clamp to valid range
+        rpm = Math.max(0.0, Math.min(rpm, MAX_RPM));
+
         if (rpm != targetRpm) {
             // Reset integral on setpoint changes (anti-windup)
             integralSum = 0.0;
@@ -163,7 +178,8 @@ public class FlywheelModified {
         // Power smoothing
         double smoothedOut = powerSmoothingAlpha * out + (1.0 - powerSmoothingAlpha) * lastAppliedPower;
 
-        // Apply to both motors
+        // Apply to both motors - motor directions handle opposite spin
+        // Both motors receive the SAME power value; hardware direction config handles spin direction
         try {
             shooter.setPower(smoothedOut);
         } catch (Exception e) {
@@ -172,7 +188,8 @@ public class FlywheelModified {
 
         if (shooter2 != null) {
             try {
-                shooter2.setPower(smoothedOut); // Motor direction handles opposite spin
+                // Same power value - motor direction (REVERSE vs FORWARD) handles opposite spin
+                shooter2.setPower(smoothedOut);
             } catch (Exception e) {
                 if (telemetry != null) telemetry.addData("FlywheelModified.power", "secondary setPower failed: " + e.getMessage());
             }
@@ -193,7 +210,7 @@ public class FlywheelModified {
                 if (v > 1e-3) return v;
             }
         } catch (Exception ignored) {}
-        return 12.0; // fallback
+        return 12.0; // fallback (consistent with typical battery voltage)
     }
 
     private double getCurrentRpm(double dtSeconds) {
@@ -214,10 +231,18 @@ public class FlywheelModified {
     // --- Public API ---
     public void setShooterOn(boolean on) {
         shooterOn = on;
+        // If turning off, reset integral to prevent windup
+        if (!on) {
+            integralSum = 0.0;
+        }
     }
 
     public boolean isShooterOn() {
         return shooterOn;
+    }
+
+    public void toggleShooterOn() {
+        setShooterOn(!shooterOn);
     }
 
     public double getCurrentRPM() {
@@ -233,6 +258,13 @@ public class FlywheelModified {
     }
 
     public void adjustTargetRPM(double delta) {
-        setTargetRPM(Math.max(0.0, targetRpm + delta));
+        setTargetRPM(targetRpm + delta);
+    }
+
+    /**
+     * Returns true if shooter2 is configured and available.
+     */
+    public boolean isDualMotor() {
+        return shooter2 != null;
     }
 }
