@@ -11,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 /**
  * Simplified PIDF flywheel controller with dual-motor support for HORS robot.
  * Based on FlywheelController but streamlined for basic teleop use.
+ * Uses CLOSE coefficients from FlywheelController.
  */
 @Configurable
 public class FlywheelModified {
@@ -25,11 +26,11 @@ public class FlywheelModified {
     @Sorter(sort = 0) public static double MAX_RPM = 6000.0;
     @Sorter(sort = 1) public static double TICKS_PER_REV = 28.0;
 
-    // --- PIDF coefficients ---
-    @Sorter(sort = 2) public static double kP = 0.0022;
-    @Sorter(sort = 3) public static double kI = 0.0016;
-    @Sorter(sort = 4) public static double kD = 0.000005;
-    @Sorter(sort = 5) public static double kF = 1.85;
+    // --- PIDF coefficients (matching FlywheelController CLOSE values) ---
+    @Sorter(sort = 2) public static double kP = 0.00146;
+    @Sorter(sort = 3) public static double kI = 0.0027;
+    @Sorter(sort = 4) public static double kD = 0.00002;
+    @Sorter(sort = 5) public static double kF = 1.72;
     @Sorter(sort = 6) public static double integralLimit = 50;
     @Sorter(sort = 7) public static double derivativeAlpha = 0.9;
     @Sorter(sort = 8) public static double rpmFilterAlpha = 0.72;
@@ -65,7 +66,6 @@ public class FlywheelModified {
         if (shooter2 != null && shooter2 instanceof DcMotorEx) {
             this.shooter2 = (DcMotorEx) shooter2;
         } else if (shooter2 != null) {
-            // If it's a regular DcMotor, we can still use it but cast carefully
             this.shooter2 = (DcMotorEx) shooter2;
         } else {
             this.shooter2 = null;
@@ -179,7 +179,6 @@ public class FlywheelModified {
         double smoothedOut = powerSmoothingAlpha * out + (1.0 - powerSmoothingAlpha) * lastAppliedPower;
 
         // Apply to both motors - motor directions handle opposite spin
-        // Both motors receive the SAME power value; hardware direction config handles spin direction
         try {
             shooter.setPower(smoothedOut);
         } catch (Exception e) {
@@ -210,7 +209,7 @@ public class FlywheelModified {
                 if (v > 1e-3) return v;
             }
         } catch (Exception ignored) {}
-        return 12.0; // fallback (consistent with typical battery voltage)
+        return 12.0; // fallback
     }
 
     private double getCurrentRpm(double dtSeconds) {
