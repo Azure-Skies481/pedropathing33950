@@ -9,34 +9,34 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 /**
- * Simplified PIDF flywheel controller with dual-motor support for HORS robot.
- * Based on FlywheelController but streamlined for basic teleop use.
+ * PIDF flywheel controller with dual-motor support for HORS robot.
+ * Tuned for stable RPM control.
  */
 @Configurable
 public class FlywheelModified {
 
     private final DcMotorEx shooter;
-    private final DcMotorEx shooter2; // mirrors power (opposite direction via motor direction)
-    private final Telemetry telemetry; // nullable
-    private final VoltageSensor voltageSensor; // nullable
+    private final DcMotorEx shooter2;
+    private final Telemetry telemetry;
+    private final VoltageSensor voltageSensor;
     private final ElapsedTime timer = new ElapsedTime();
 
     // --- Configurable constants ---
     @Sorter(sort = 0) public static double MAX_RPM = 6000.0;
     @Sorter(sort = 1) public static double TICKS_PER_REV = 28.0;
 
-    // --- PIDF coefficients (TUNED for faster response) ---
-    @Sorter(sort = 2) public static double kP = 0.0008;      // INCREASED - faster error correction
-    @Sorter(sort = 3) public static double kI = 0.0005;      // INCREASED - eliminates steady-state error
-    @Sorter(sort = 4) public static double kD = 0.00015;     // Slightly reduced for stability
-    @Sorter(sort = 5) public static double kF = 1.35;        // Your feedforward value
-    @Sorter(sort = 6) public static double integralLimit = 30;  // Reduced to prevent windup
-    @Sorter(sort = 7) public static double derivativeAlpha = 0.8;  // More responsive derivative
-    @Sorter(sort = 8) public static double rpmFilterAlpha = 0.6;   // Less filtering = faster response
-    @Sorter(sort = 9) public static double powerSmoothingAlpha = 0.3;  // Less smoothing = faster response
+    // --- TUNED PIDF coefficients ---
+    @Sorter(sort = 2) public static double kP = 0.00015;     // REDUCED - P alone was causing full power
+    @Sorter(sort = 3) public static double kI = 0.0001;      // Small integral to eliminate steady-state error
+    @Sorter(sort = 4) public static double kD = 0.00008;     // INCREASED - more damping to slow down near target
+    @Sorter(sort = 5) public static double kF = 1.0;         // FIXED - this is the main driver, ~1.0 is good baseline
+    @Sorter(sort = 6) public static double integralLimit = 15;  // Reduced to prevent windup
+    @Sorter(sort = 7) public static double derivativeAlpha = 0.7;
+    @Sorter(sort = 8) public static double rpmFilterAlpha = 0.5;   // Smoother RPM reading
+    @Sorter(sort = 9) public static double powerSmoothingAlpha = 0.15;  // Much smoother power changes
     @Sorter(sort = 10) public static double ffReferenceVoltage = 13.0;
     @Sorter(sort = 11) public static double ffReferenceMaxTicksPerSec = 4930;
-    @Sorter(sort = 12) public static double rpmTolerance = 50.0;
+    @Sorter(sort = 12) public static double rpmTolerance = 75.0;
 
     // --- Internal state ---
     private double targetRpm = 2600;
@@ -47,24 +47,16 @@ public class FlywheelModified {
     private double currentRpm = 0.0;
     private double lastAppliedPower = 0.0;
 
-    private boolean shooterOn = true;
+    private boolean shooterOn = false;
     private boolean lastAtTarget = false;
 
-    /**
-     * Constructor for dual-motor setup (shooter + shooter2)
-     * IMPORTANT: Motor directions should be configured BEFORE passing to this constructor.
-     * shooter and shooter2 should spin in opposite directions - configure via setDirection() in OpMode.
-     */
     public FlywheelModified(DcMotor shooter, DcMotor shooter2, Telemetry telemetry, VoltageSensor voltageSensor) {
         if (!(shooter instanceof DcMotorEx)) {
             throw new IllegalArgumentException("Primary shooter must be a DcMotorEx");
         }
         this.shooter = (DcMotorEx) shooter;
 
-        // Handle shooter2 - can be DcMotor or DcMotorEx
         if (shooter2 != null && shooter2 instanceof DcMotorEx) {
-            this.shooter2 = (DcMotorEx) shooter2;
-        } else if (shooter2 != null) {
             this.shooter2 = (DcMotorEx) shooter2;
         } else {
             this.shooter2 = null;
@@ -94,33 +86,22 @@ public class FlywheelModified {
         lastPos = this.shooter.getCurrentPosition();
     }
 
-    /**
-     * Backward-compatible constructor for single-motor setup
-     */
     public FlywheelModified(DcMotor shooter, Telemetry telemetry, VoltageSensor voltageSensor) {
         this(shooter, null, telemetry, voltageSensor);
     }
 
-    /**
-     * Constructor without voltage sensor
-     */
     public FlywheelModified(DcMotor shooter, DcMotor shooter2, Telemetry telemetry) {
         this(shooter, shooter2, telemetry, null);
     }
 
-    /**
-     * Single motor, no voltage sensor
-     */
     public FlywheelModified(DcMotor shooter, Telemetry telemetry) {
         this(shooter, null, telemetry, null);
     }
 
     public void setTargetRPM(double rpm) {
-        // Clamp to valid range
         rpm = Math.max(0.0, Math.min(rpm, MAX_RPM));
 
         if (rpm != targetRpm) {
-            // Reset integral on setpoint changes (anti-windup)
             integralSum = 0.0;
             lastError = 0.0;
             lastDerivativeEstimate = 0.0;
@@ -139,45 +120,71 @@ public class FlywheelModified {
 
     public void update() {
         double dt = timer.seconds();
-        if (dt <= 0) dt = 1e-3; // avoid div/0
+        if (dt <= 0) dt = 1e-3;
 
         double currentRpmNow = getCurrentRpm(dt);
-        // Low-pass filter on measured RPM
         currentRpm = rpmFilterAlpha * currentRpmNow + (1.0 - rpmFilterAlpha) * currentRpm;
 
         timer.reset();
 
+        // If shooter is off, set power to 0
+        if (!shooterOn) {
+            try {
+                shooter.setPower(0.0);
+            } catch (Exception ignored) {}
+
+            if (shooter2 != null) {
+                try {
+                    shooter2.setPower(0.0);
+                } catch (Exception ignored) {}
+            }
+
+            lastAppliedPower = 0.0;
+            return;
+        }
+
         double error = targetRpm - currentRpm;
 
-        // Integral with clamping
-        integralSum += error * dt;
-        if (integralSum > integralLimit) integralSum = integralLimit;
-        if (integralSum < -integralLimit) integralSum = -integralLimit;
+        // Only accumulate integral when close to target (prevents windup during spinup)
+        if (Math.abs(error) < 300) {
+            integralSum += error * dt;
+            if (integralSum > integralLimit) integralSum = integralLimit;
+            if (integralSum < -integralLimit) integralSum = -integralLimit;
+        } else {
+            // Reset integral when far from target
+            integralSum = 0.0;
+        }
+
+        // Reset integral on overshoot to recover quickly
+        if (error < -50) {
+            integralSum = 0.0;
+        }
 
         // Derivative with low-pass filter
         double rawDeriv = (error - lastError) / dt;
         double deriv = derivativeAlpha * lastDerivativeEstimate + (1.0 - derivativeAlpha) * rawDeriv;
         lastDerivativeEstimate = deriv;
 
-        // Dynamic feedforward based on battery voltage
+        // Feedforward: calculate base power needed for target RPM
         double voltage = getBatteryVoltage();
         double maxTicksPerSec = (voltage / ffReferenceVoltage) * ffReferenceMaxTicksPerSec;
         if (maxTicksPerSec < 1e-3) maxTicksPerSec = 1e-3;
         double targetTicksPerSec = (targetRpm * TICKS_PER_REV) / 60.0;
         double ff = (targetTicksPerSec / maxTicksPerSec) * kF;
 
-        // PIDF output
-        double out = ff + (kP * error) + (kI * integralSum) + (kD * deriv);
+        // PID correction on top of feedforward
+        double pid = (kP * error) + (kI * integralSum) + (kD * deriv);
 
-        // Clamp to [-1, 1]
-        out = Math.max(-1.0, Math.min(1.0, out));
+        // Total output
+        double out = ff + pid;
 
-        if (!shooterOn) out = 0.0;
+        // Clamp to [0, 1]
+        out = Math.max(0.0, Math.min(1.0, out));
 
-        // Power smoothing
+        // Power smoothing - blend new output with previous
         double smoothedOut = powerSmoothingAlpha * out + (1.0 - powerSmoothingAlpha) * lastAppliedPower;
 
-        // Apply to both motors - motor directions handle opposite spin
+        // Apply to both motors
         try {
             shooter.setPower(smoothedOut);
         } catch (Exception e) {
@@ -186,7 +193,6 @@ public class FlywheelModified {
 
         if (shooter2 != null) {
             try {
-                // Same power value - motor direction (REVERSE vs FORWARD) handles opposite spin
                 shooter2.setPower(smoothedOut);
             } catch (Exception e) {
                 if (telemetry != null) telemetry.addData("FlywheelModified.power", "secondary setPower failed: " + e.getMessage());
@@ -196,7 +202,6 @@ public class FlywheelModified {
         lastAppliedPower = smoothedOut;
         lastError = error;
 
-        // At-target detection
         boolean atTargetNow = Math.abs(error) <= rpmTolerance;
         lastAtTarget = atTargetNow;
     }
@@ -208,13 +213,13 @@ public class FlywheelModified {
                 if (v > 1e-3) return v;
             }
         } catch (Exception ignored) {}
-        return 12.0; // fallback
+        return 12.0;
     }
 
     private double getCurrentRpm(double dtSeconds) {
         double ticksPerSecond;
         try {
-            ticksPerSecond = shooter.getVelocity(); // ticks/sec
+            ticksPerSecond = shooter.getVelocity();
             lastPos = shooter.getCurrentPosition();
         } catch (Exception e) {
             int pos = shooter.getCurrentPosition();
@@ -226,13 +231,14 @@ public class FlywheelModified {
         return (ticksPerSecond * 60.0) / TICKS_PER_REV;
     }
 
-    // --- Public API ---
     public void setShooterOn(boolean on) {
-        shooterOn = on;
-        // If turning off, reset integral to prevent windup
-        if (!on) {
+        if (on && !shooterOn) {
             integralSum = 0.0;
+            lastError = 0.0;
+            lastDerivativeEstimate = 0.0;
+            lastAppliedPower = 0.0;
         }
+        shooterOn = on;
     }
 
     public boolean isShooterOn() {
@@ -259,9 +265,6 @@ public class FlywheelModified {
         setTargetRPM(targetRpm + delta);
     }
 
-    /**
-     * Returns true if shooter2 is configured and available.
-     */
     public boolean isDualMotor() {
         return shooter2 != null;
     }

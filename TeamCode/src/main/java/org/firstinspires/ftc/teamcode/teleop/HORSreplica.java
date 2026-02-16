@@ -23,7 +23,7 @@ public class HORSreplica extends LinearOpMode {
 
     private DcMotorEx intake = null;
     private DcMotorEx shooter = null;
-    private DcMotorEx shooter2 = null; // NEW: Second shooter motor
+    private DcMotorEx shooter2 = null;
     private Servo gate = null;
     private VoltageSensor voltageSensor = null;
 
@@ -32,7 +32,7 @@ public class HORSreplica extends LinearOpMode {
     @Sorter(sort = 0)
     public static double feedback = 0.0008; // not used anymore
 
-    private boolean shooterToggle = true;  // CHANGED: Start with shooter ON
+    private boolean shooterToggle = true;  // Start with shooter ON
     private boolean shooterToggleWasPressed = false;
 
     private boolean gateOpen = false;
@@ -51,7 +51,7 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1)
-    public static int power = 2600;  // CHANGED: DEFAULT RPM IS 2600
+    public static int power = 2600;  // DEFAULT RPM IS 2600
 
     private IMU imu = null;
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
@@ -78,12 +78,12 @@ public class HORSreplica extends LinearOpMode {
         while (opModeIsActive()) {
             double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
             double error = imuAlignAngle - imuAngle;
-            double power = 0.02 * error;
+            double alignPower = 0.02 * error;
 
-            frontLeftMotor.setPower(-power);
-            backLeftMotor.setPower(power);
-            frontRightMotor.setPower(power);
-            backRightMotor.setPower(power);
+            frontLeftMotor.setPower(-alignPower);
+            backLeftMotor.setPower(-alignPower);
+            frontRightMotor.setPower(alignPower);
+            backRightMotor.setPower(alignPower);
 
             double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity()
                     + frontRightMotor.getVelocity() + backRightMotor.getVelocity()) / 4;
@@ -116,15 +116,14 @@ public class HORSreplica extends LinearOpMode {
         Timer.reset();
         double skibidi = Timer.time(TimeUnit.MILLISECONDS);
 
-        gate.setPosition(0.5);
+        gate.setPosition(0.0);  // Open gate
         intake.setPower(-0.85);
-        while (skibidi < 1000) {
+        while (skibidi < 1000 && opModeIsActive()) {
             skibidi = Timer.time(TimeUnit.MILLISECONDS);
-            flywheel.setTargetRPM(power);
             flywheel.update(); // Keep updating during launch
         }
         intake.setPower(0);
-        gate.setPosition(0.36);
+        gate.setPosition(0.3);  // Close gate
     }
 
     public void stopMove() {
@@ -144,17 +143,23 @@ public class HORSreplica extends LinearOpMode {
         frontRightMotor = (DcMotorEx) hardwareMap.dcMotor.get("frontRight");
         backRightMotor = (DcMotorEx) hardwareMap.dcMotor.get("backRight");
 
+        // Drivetrain directions
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         intake = hardwareMap.get(DcMotorEx.class, "intakeMotor");
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
 
-        // NEW: Initialize second shooter motor
+        // Configure shooter direction - FORWARD for positive power = correct spin
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        // Initialize second shooter motor
         try {
             shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
+            // shooter2 spins OPPOSITE direction mechanically, so REVERSE makes it spin same effective direction
+            shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
             telemetry.addData("Shooter2", "Initialized ✓");
         } catch (IllegalArgumentException e) {
             shooter2 = null;
@@ -171,17 +176,14 @@ public class HORSreplica extends LinearOpMode {
         }
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        // NEW: Set shooter2 direction (opposite to shooter for counter-rotation)
-        if (shooter2 != null) {
-            shooter2.setDirection(DcMotorSimple.Direction.REVERSE); // Opposite direction
-        }
 
         // Initialize FlywheelModified with both motors
         flywheel = new FlywheelModified(shooter, shooter2, telemetry, voltageSensor);
-        flywheel.setTargetRPM(power);  // CHANGED: Use power variable (2600)
-        flywheel.setShooterOn(false);  // CHANGED: Keep shooter OFF during init
+        flywheel.setTargetRPM(power);
+        flywheel.setShooterOn(false);  // Keep shooter OFF during init
+
+        // Set gate to closed position during init
+        gate.setPosition(0.3);
 
         imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
 
@@ -192,7 +194,8 @@ public class HORSreplica extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
-        // ADDED: Turn shooter ON at START (not during init)
+        // Turn shooter ON at START (not during init)
+        shooterToggle = true;
         flywheel.setShooterOn(true);
 
         double time;
@@ -295,17 +298,15 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate position logic
-            gate.setPosition(gateOpen ? 0.2 : 0.8);
+            gate.setPosition(gateOpen ? 0.0 : 0.3);
 
             // Update PIDF controller
             flywheel.update();
 
             // Rumble feedback when not at speed
-            double targetRpm = flywheel.getTargetRPM();
-            double currentRpm = flywheel.getCurrentRPM();
-            boolean withinTolerance = Math.abs(targetRpm - currentRpm) <= 50.0;
+            boolean atTarget = flywheel.isAtTarget();
 
-            if (flywheel.isShooterOn() && !withinTolerance) {
+            if (flywheel.isShooterOn() && !atTarget) {
                 gamepad1.rumble(0.5, 0.5, 100);
                 gamepad2.rumble(0.5, 0.5, 100);
                 wasVibratingLastLoop = true;
@@ -329,7 +330,7 @@ public class HORSreplica extends LinearOpMode {
             telemetry.addData("Shooter On", flywheel.isShooterOn());
             telemetry.addData("Intake Power", "%.2f", intakePower);
             telemetry.addData("Fast Mode", fastMode);
-            telemetry.addData("Dual Motors", shooter2 != null ? "YES" : "NO");
+            telemetry.addData("Dual Motors", flywheel.isDualMotor() ? "YES" : "NO");
             telemetry.addData("Reference Heading", "%.1f°", Math.toDegrees(imuAlignAngle));
             telemetry.update();
         }
