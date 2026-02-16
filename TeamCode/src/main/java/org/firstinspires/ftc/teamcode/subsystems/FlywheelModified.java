@@ -27,10 +27,10 @@ public class FlywheelModified {
     @Sorter(sort = 1) public static double TICKS_PER_REV = 28.0;
 
     // --- PIDF coefficients (matching FlywheelController CLOSE values) ---
-    @Sorter(sort = 2) public static double kP = 0.00146;
+    @Sorter(sort = 2) public static double kP = 0.00002;
     @Sorter(sort = 3) public static double kI = 0.0027;
-    @Sorter(sort = 4) public static double kD = 0.00002;
-    @Sorter(sort = 5) public static double kF = 1.72;
+    @Sorter(sort = 4) public static double kD = 0.00001;
+    @Sorter(sort = 5) public static double kF = 1.7;
     @Sorter(sort = 6) public static double integralLimit = 50;
     @Sorter(sort = 7) public static double derivativeAlpha = 0.9;
     @Sorter(sort = 8) public static double rpmFilterAlpha = 0.72;
