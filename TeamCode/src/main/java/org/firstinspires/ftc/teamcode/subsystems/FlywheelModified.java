@@ -11,7 +11,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 /**
  * Simplified PIDF flywheel controller with dual-motor support for HORS robot.
  * Based on FlywheelController but streamlined for basic teleop use.
- * Uses CLOSE coefficients from FlywheelController.
  */
 @Configurable
 public class FlywheelModified {
@@ -26,15 +25,15 @@ public class FlywheelModified {
     @Sorter(sort = 0) public static double MAX_RPM = 6000.0;
     @Sorter(sort = 1) public static double TICKS_PER_REV = 28.0;
 
-    // --- PIDF coefficients (matching FlywheelController CLOSE values) ---
-    @Sorter(sort = 2) public static double kP = 0.00146;
-    @Sorter(sort = 3) public static double kI = 0.0027;
-    @Sorter(sort = 4) public static double kD = 0.00002;
-    @Sorter(sort = 5) public static double kF = 1.72;
-    @Sorter(sort = 6) public static double integralLimit = 50;
-    @Sorter(sort = 7) public static double derivativeAlpha = 0.9;
-    @Sorter(sort = 8) public static double rpmFilterAlpha = 0.72;
-    @Sorter(sort = 9) public static double powerSmoothingAlpha = 0.5;
+    // --- PIDF coefficients (TUNED for faster response) ---
+    @Sorter(sort = 2) public static double kP = 0.0008;      // INCREASED - faster error correction
+    @Sorter(sort = 3) public static double kI = 0.0005;      // INCREASED - eliminates steady-state error
+    @Sorter(sort = 4) public static double kD = 0.00015;     // Slightly reduced for stability
+    @Sorter(sort = 5) public static double kF = 1.35;        // Your feedforward value
+    @Sorter(sort = 6) public static double integralLimit = 30;  // Reduced to prevent windup
+    @Sorter(sort = 7) public static double derivativeAlpha = 0.8;  // More responsive derivative
+    @Sorter(sort = 8) public static double rpmFilterAlpha = 0.6;   // Less filtering = faster response
+    @Sorter(sort = 9) public static double powerSmoothingAlpha = 0.3;  // Less smoothing = faster response
     @Sorter(sort = 10) public static double ffReferenceVoltage = 13.0;
     @Sorter(sort = 11) public static double ffReferenceMaxTicksPerSec = 4930;
     @Sorter(sort = 12) public static double rpmTolerance = 50.0;

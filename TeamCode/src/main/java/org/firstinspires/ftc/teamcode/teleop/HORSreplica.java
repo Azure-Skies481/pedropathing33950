@@ -32,7 +32,7 @@ public class HORSreplica extends LinearOpMode {
     @Sorter(sort = 0)
     public static double feedback = 0.0008; // not used anymore
 
-    private boolean shooterToggle = false;
+    private boolean shooterToggle = true;  // CHANGED: Start with shooter ON
     private boolean shooterToggleWasPressed = false;
 
     private boolean gateOpen = false;
@@ -51,7 +51,7 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1)
-    public static int power = 2850;  // DEFAULT RPM IS 2850
+    public static int power = 2600;  // CHANGED: DEFAULT RPM IS 2600
 
     private IMU imu = null;
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
@@ -81,7 +81,7 @@ public class HORSreplica extends LinearOpMode {
             double power = 0.02 * error;
 
             frontLeftMotor.setPower(-power);
-            backLeftMotor.setPower(-power);
+            backLeftMotor.setPower(power);
             frontRightMotor.setPower(power);
             backRightMotor.setPower(power);
 
@@ -178,10 +178,10 @@ public class HORSreplica extends LinearOpMode {
             shooter2.setDirection(DcMotorSimple.Direction.REVERSE); // Opposite direction
         }
 
-        // NEW: Initialize FlywheelModified with both motors
+        // Initialize FlywheelModified with both motors
         flywheel = new FlywheelModified(shooter, shooter2, telemetry, voltageSensor);
-        flywheel.setTargetRPM(2600);
-        flywheel.setShooterOn(true); // Start with shooter on
+        flywheel.setTargetRPM(power);  // CHANGED: Use power variable (2600)
+        flywheel.setShooterOn(false);  // CHANGED: Keep shooter OFF during init
 
         imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
 
@@ -191,6 +191,9 @@ public class HORSreplica extends LinearOpMode {
 
         waitForStart();
         if (isStopRequested()) return;
+
+        // ADDED: Turn shooter ON at START (not during init)
+        flywheel.setShooterOn(true);
 
         double time;
         while (opModeIsActive()) {
@@ -292,7 +295,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate position logic
-            gate.setPosition(gateOpen ? 0.5 : 0.36);
+            gate.setPosition(gateOpen ? 0.2 : 0.8);
 
             // Update PIDF controller
             flywheel.update();
