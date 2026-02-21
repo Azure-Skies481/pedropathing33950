@@ -51,9 +51,10 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1)
-    public static int power = 3600;  // DEFAULT RPM IS 2600
+    public static int power = 3850;  // DEFAULT RPM IS 2600
 
     private IMU imu = null;
+
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
             RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
@@ -136,6 +137,7 @@ public class HORSreplica extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         imu = hardwareMap.get(IMU.class, "imu");
+
         imu.initialize(parameters);
 
         frontLeftMotor = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
