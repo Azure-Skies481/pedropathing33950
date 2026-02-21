@@ -20,9 +20,9 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 
-@Autonomous(name = "HORSreplica Blue Close", group = "Autonomous", preselectTeleOp = "A HORS OFFICIAL ⭐")
+@Autonomous(name = "New Red Close", group = "Autonomous", preselectTeleOp = "A HORS OFFICIAL ⭐")
 @Configurable
-public class HORSreplicaBlueClose extends OpMode {
+public class NewRedClose extends OpMode {
 
     private TelemetryManager panelsTelemetry;
     private Follower follower;
@@ -109,63 +109,63 @@ public class HORSreplicaBlueClose extends OpMode {
     // PATH POSES - START POSITION & SHOOT/ALIGN HEADINGS
     // ========================================
     @Sorter(sort = 100)
-    public static double START_X = 20.0;
+    public static double START_X = 122.0;
     @Sorter(sort = 101)
     public static double START_Y = 122.0;
     @Sorter(sort = 102)
-    public static double START_HEADING = 135.0;
+    public static double START_HEADING = 45;
     @Sorter(sort = 110)
-    public static double SHOOT_POSE_X = 54;
+    public static double SHOOT_POSE_X = 84;
     @Sorter(sort = 111)
     public static double SHOOT_POSE_Y = 84;
     @Sorter(sort = 112)
-    public static double SHOOT_HEADING_INITIAL = 135;
+    public static double SHOOT_HEADING_INITIAL = 45;
     @Sorter(sort = 113)
-    public static double SHOOT_HEADING_FIRST3 = 135;
+    public static double SHOOT_HEADING_FIRST3 = 45;
     @Sorter(sort = 114)
-    public static double SHOOT_SECOND3_HEADING = 135;
+    public static double SHOOT_SECOND3_HEADING = 45;
     @Sorter(sort = 115)
-    public static double SHOOT_FINAL_HEADING = 135;
+    public static double SHOOT_FINAL_HEADING = 45;
     @Sorter(sort = 120)
-    public static double COLLECT_FIRST3_X = 16.0;
+    public static double COLLECT_FIRST3_X = 125.0;
     @Sorter(sort = 121)
     public static double COLLECT_FIRST3_Y = 90.0;
     @Sorter(sort = 122)
-    public static double COLLECT_FIRST3_HEADING = 180.0;
+    public static double COLLECT_FIRST3_HEADING = 0;
     @Sorter(sort = 140)
-    public static double ALIGN_SECOND3_X = 50.0;
+    public static double ALIGN_SECOND3_X = 95.0;
     @Sorter(sort = 141)
     public static double ALIGN_SECOND3_Y = 64.0;
     @Sorter(sort = 142)
-    public static double ALIGN_SECOND3_HEADING = -175.0;
+    public static double ALIGN_SECOND3_HEADING = 0;
     @Sorter(sort = 150)
-    public static double COLLECT_SECOND3_X = 12.0;
+    public static double COLLECT_SECOND3_X = 125.0;
     @Sorter(sort = 151)
     public static double COLLECT_SECOND3_Y = 64;
     @Sorter(sort = 152)
-    public static double COLLECT_SECOND3_HEADING = -180.0;
+    public static double COLLECT_SECOND3_HEADING = 0;
     @Sorter(sort = 160)
-    public static double ALIGN_THIRD3_X = 50.0;
+    public static double ALIGN_THIRD3_X = 95.0;
     @Sorter(sort = 161)
     public static double ALIGN_THIRD3_Y = 41.0;
     @Sorter(sort = 162)
-    public static double ALIGN_THIRD3_HEADING = -180.0;
+    public static double ALIGN_THIRD3_HEADING = 0;
     @Sorter(sort = 170)
-    public static double COLLECT_THIRD3_X = 12.0;
+    public static double COLLECT_THIRD3_X = 125.0;
     @Sorter(sort = 171)
     public static double COLLECT_THIRD3_Y = 41.0;
     @Sorter(sort = 172)
-    public static double COLLECT_THIRD3_HEADING = 180.0;
+    public static double COLLECT_THIRD3_HEADING = 0;
     @Sorter(sort = 180)
-    public static double MOVE_RP_X = 36.0;
+    public static double MOVE_RP_X = 100.0;
     @Sorter(sort = 181)
     public static double MOVE_RP_Y = 80.0;
     @Sorter(sort = 182)
-    public static double MOVE_RP_HEADING = 135.0;
+    public static double MOVE_RP_HEADING = 45;
 
     private static final double AUTO_SHOOTER_RPM = 3900;
 
-    public HORSreplicaBlueClose() {}
+    public NewRedClose() {}
 
     @Override
     public void init() {
