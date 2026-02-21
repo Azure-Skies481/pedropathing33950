@@ -67,11 +67,11 @@ public class HORSreplicaBlueClose extends OpMode {
     // TIMING PARAMETERS
     // ========================================
     @Sorter(sort = 0)
-    public static double INTAKE_RUN_SECONDS = 0.4;
+    public static double INTAKE_RUN_SECONDS = 0.8;
     @Sorter(sort = 1)
-    public static double TIMED_INTAKE_SECONDS = 0.5;
+    public static double TIMED_INTAKE_SECONDS = 0.6;
     @Sorter(sort = 2)
-    public static double PRE_ACTION_FIRST_SHOOT_WAIT_SECONDS = 0.76;
+    public static double PRE_ACTION_FIRST_SHOOT_WAIT_SECONDS = 0.2;
     @Sorter(sort = 3)
     public static double PRE_ACTION_WAIT_SECONDS = 0.65;
     @Sorter(sort = 4)
@@ -101,9 +101,9 @@ public class HORSreplicaBlueClose extends OpMode {
     // GATE SETTINGS (HORS replica: open=0.10, closed=0.30)
     // ========================================
     @Sorter(sort = 30)
-    public static double GATE_OPEN = 0.10;
+    public static double GATE_OPEN = 0.3;
     @Sorter(sort = 31)
-    public static double GATE_CLOSED = 0.30;
+    public static double GATE_CLOSED = 0.1;
     @Sorter(sort = 32)
     public static double GATE_OPEN_TOLERANCE_IN = 10.0;
     @Sorter(sort = 33)
@@ -138,7 +138,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 120)
     public static double COLLECT_FIRST3_X = 22.0;
     @Sorter(sort = 121)
-    public static double COLLECT_FIRST3_Y = 84.0;
+    public static double COLLECT_FIRST3_Y = 88.0;
     @Sorter(sort = 122)
     public static double COLLECT_FIRST3_HEADING = 180.0;
     @Sorter(sort = 125)
@@ -162,7 +162,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 150)
     public static double COLLECT_SECOND3_X = 12.0;
     @Sorter(sort = 151)
-    public static double COLLECT_SECOND3_Y = 58.0;
+    public static double COLLECT_SECOND3_Y = 62.0;//58
     @Sorter(sort = 152)
     public static double COLLECT_SECOND3_HEADING = -180.0;
     @Sorter(sort = 160)
@@ -174,7 +174,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 170)
     public static double COLLECT_THIRD3_X = 12.0;
     @Sorter(sort = 171)
-    public static double COLLECT_THIRD3_Y = 35.0;
+    public static double COLLECT_THIRD3_Y = 39.0;
     @Sorter(sort = 172)
     public static double COLLECT_THIRD3_HEADING = 180.0;
     @Sorter(sort = 180)
