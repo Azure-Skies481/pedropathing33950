@@ -180,7 +180,11 @@ public class HORSreplica extends LinearOpMode {
         // Initialize FlywheelModified with both motors
         flywheel = new FlywheelModified(shooter, shooter2, telemetry, voltageSensor);
         flywheel.setTargetRPM(power);
-        flywheel.setShooterOn(false);  // Keep shooter OFF during init
+        flywheel.setShooterOn(false);// Keep shooter OFF during init
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Set gate to closed position during init
         gate.setPosition(0.3);
