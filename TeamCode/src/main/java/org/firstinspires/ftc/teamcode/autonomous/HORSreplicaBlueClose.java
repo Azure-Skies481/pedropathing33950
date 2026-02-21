@@ -12,8 +12,8 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
@@ -115,7 +115,6 @@ public class HORSreplicaBlueClose extends OpMode {
 
     // ========================================
     // PATH POSES - START POSITION & SHOOT/ALIGN HEADINGS
-    // Shoot heading forced to 135; collect headings remain 180/-180
     // ========================================
     @Sorter(sort = 100)
     public static double START_X = 20.0;
@@ -162,7 +161,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 150)
     public static double COLLECT_SECOND3_X = 14.0;
     @Sorter(sort = 151)
-    public static double COLLECT_SECOND3_Y = 58;//58
+    public static double COLLECT_SECOND3_Y = 58; // per your provided paths
     @Sorter(sort = 152)
     public static double COLLECT_SECOND3_HEADING = -180.0;
     @Sorter(sort = 160)
@@ -174,7 +173,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 170)
     public static double COLLECT_THIRD3_X = 14.0;
     @Sorter(sort = 171)
-    public static double COLLECT_THIRD3_Y = 35.0;
+    public static double COLLECT_THIRD3_Y = 35.0; // per your provided paths
     @Sorter(sort = 172)
     public static double COLLECT_THIRD3_HEADING = 180.0;
     @Sorter(sort = 180)
@@ -583,10 +582,14 @@ public class HORSreplicaBlueClose extends OpMode {
         public PathChain backToShootThird3;
         public PathChain moveForRP;
 
+        // Tiny move to force the follower to accept the turn segment (avoids zero-length path issues)
+        private static final double TURN_EPS = 0.01;
+
         private PathChain buildTurnThenDrive(Follower follower, Pose start, Pose end, double startHeadingDeg, double targetHeadingDeg) {
+            Pose turnNudge = new Pose(start.getX() + TURN_EPS, start.getY() + TURN_EPS);
             return follower.pathBuilder()
-                    // In‑place heading change
-                    .addPath(new BezierLine(start, start))
+                    // In-place-ish heading change (tiny move to avoid zero-length)
+                    .addPath(new BezierLine(start, turnNudge))
                     .setLinearHeadingInterpolation(Math.toRadians(startHeadingDeg), Math.toRadians(targetHeadingDeg))
                     // Drive while holding the new heading
                     .addPath(new BezierLine(start, end))
