@@ -20,7 +20,6 @@ public class FieldcenteredTest extends LinearOpMode {
     private DcMotorEx reverseintake = null;
     private DcMotorEx shooter = null;
     private Servo gate = null; //new servo js added
-    private double maxspeed = 2800;
     private double feedback = 0.001;
     boolean wasPressedLastFrame = false;
     boolean gateWasPressedLastFrame = false; //Satoru...
@@ -122,7 +121,8 @@ public class FieldcenteredTest extends LinearOpMode {
             }
             if (shooterToggle) {
 
-                this.shooter.setPower(feedback * (power - actualspeed) + actualspeed/maxspeed);
+                double maxspeed = 2800;
+                this.shooter.setPower(feedback * (power - actualspeed) + actualspeed/ maxspeed);
             } else {
                 this.shooter.setVelocity(0);
             }
