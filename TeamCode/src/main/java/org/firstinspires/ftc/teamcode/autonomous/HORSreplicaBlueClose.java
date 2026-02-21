@@ -162,7 +162,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 150)
     public static double COLLECT_SECOND3_X = 14.0;
     @Sorter(sort = 151)
-    public static double COLLECT_SECOND3_Y = 62.0;//58
+    public static double COLLECT_SECOND3_Y = 58;//58
     @Sorter(sort = 152)
     public static double COLLECT_SECOND3_HEADING = -180.0;
     @Sorter(sort = 160)
@@ -174,7 +174,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 170)
     public static double COLLECT_THIRD3_X = 14.0;
     @Sorter(sort = 171)
-    public static double COLLECT_THIRD3_Y = 39.0;
+    public static double COLLECT_THIRD3_Y = 35.0;
     @Sorter(sort = 172)
     public static double COLLECT_THIRD3_HEADING = 180.0;
     @Sorter(sort = 180)
@@ -583,66 +583,113 @@ public class HORSreplicaBlueClose extends OpMode {
         public PathChain backToShootThird3;
         public PathChain moveForRP;
 
+        private PathChain buildTurnThenDrive(Follower follower, Pose start, Pose end, double startHeadingDeg, double targetHeadingDeg) {
+            return follower.pathBuilder()
+                    // In‑place heading change
+                    .addPath(new BezierLine(start, start))
+                    .setLinearHeadingInterpolation(Math.toRadians(startHeadingDeg), Math.toRadians(targetHeadingDeg))
+                    // Drive while holding the new heading
+                    .addPath(new BezierLine(start, end))
+                    .setLinearHeadingInterpolation(Math.toRadians(targetHeadingDeg), Math.toRadians(targetHeadingDeg))
+                    .build();
+        }
+
         public Paths(Follower follower) {
-            startToShoot = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(START_X, START_Y), new Pose(SHOOT_POSE_X, SHOOT_POSE_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(START_HEADING), Math.toRadians(SHOOT_HEADING_INITIAL))
-                    .build();
+            startToShoot = buildTurnThenDrive(
+                    follower,
+                    new Pose(START_X, START_Y),
+                    new Pose(SHOOT_POSE_X, SHOOT_POSE_Y),
+                    START_HEADING,
+                    SHOOT_HEADING_INITIAL
+            );
 
-            collectFirst3 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(SHOOT_POSE_X, SHOOT_POSE_Y), new Pose(COLLECT_FIRST3_X, COLLECT_FIRST3_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(SHOOT_HEADING_INITIAL), Math.toRadians(COLLECT_FIRST3_HEADING))
-                    .build();
+            collectFirst3 = buildTurnThenDrive(
+                    follower,
+                    new Pose(SHOOT_POSE_X, SHOOT_POSE_Y),
+                    new Pose(COLLECT_FIRST3_X, COLLECT_FIRST3_Y),
+                    SHOOT_HEADING_INITIAL,
+                    COLLECT_FIRST3_HEADING
+            );
 
-            gateAlign = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(COLLECT_FIRST3_X, COLLECT_FIRST3_Y), new Pose(GATE_ALIGN_X, GATE_ALIGN_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(COLLECT_FIRST3_HEADING), Math.toRadians(GATE_ALIGN_HEADING))
-                    .build();
+            gateAlign = buildTurnThenDrive(
+                    follower,
+                    new Pose(COLLECT_FIRST3_X, COLLECT_FIRST3_Y),
+                    new Pose(GATE_ALIGN_X, GATE_ALIGN_Y),
+                    COLLECT_FIRST3_HEADING,
+                    GATE_ALIGN_HEADING
+            );
 
-            gateClear = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(GATE_ALIGN_X, GATE_ALIGN_Y), new Pose(GATE_CLEAR_X, GATE_CLEAR_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(GATE_ALIGN_HEADING), Math.toRadians(GATE_CLEAR_HEADING))
-                    .build();
+            gateClear = buildTurnThenDrive(
+                    follower,
+                    new Pose(GATE_ALIGN_X, GATE_ALIGN_Y),
+                    new Pose(GATE_CLEAR_X, GATE_CLEAR_Y),
+                    GATE_ALIGN_HEADING,
+                    GATE_CLEAR_HEADING
+            );
 
-            backToShootFirst3 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(GATE_CLEAR_X, GATE_CLEAR_Y), new Pose(SHOOT_POSE_X, SHOOT_POSE_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(GATE_CLEAR_HEADING), Math.toRadians(SHOOT_HEADING_FIRST3))
-                    .build();
+            backToShootFirst3 = buildTurnThenDrive(
+                    follower,
+                    new Pose(GATE_CLEAR_X, GATE_CLEAR_Y),
+                    new Pose(SHOOT_POSE_X, SHOOT_POSE_Y),
+                    GATE_CLEAR_HEADING,
+                    SHOOT_HEADING_FIRST3
+            );
 
-            alignToCollectSecond3 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(SHOOT_POSE_X, SHOOT_POSE_Y), new Pose(ALIGN_SECOND3_X, ALIGN_SECOND3_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(SHOOT_HEADING_FIRST3), Math.toRadians(ALIGN_SECOND3_HEADING))
-                    .build();
+            alignToCollectSecond3 = buildTurnThenDrive(
+                    follower,
+                    new Pose(SHOOT_POSE_X, SHOOT_POSE_Y),
+                    new Pose(ALIGN_SECOND3_X, ALIGN_SECOND3_Y),
+                    SHOOT_HEADING_FIRST3,
+                    ALIGN_SECOND3_HEADING
+            );
 
-            collectSecond3 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(ALIGN_SECOND3_X, ALIGN_SECOND3_Y), new Pose(COLLECT_SECOND3_X, COLLECT_SECOND3_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(ALIGN_SECOND3_HEADING), Math.toRadians(COLLECT_SECOND3_HEADING))
-                    .build();
+            collectSecond3 = buildTurnThenDrive(
+                    follower,
+                    new Pose(ALIGN_SECOND3_X, ALIGN_SECOND3_Y),
+                    new Pose(COLLECT_SECOND3_X, COLLECT_SECOND3_Y),
+                    ALIGN_SECOND3_HEADING,
+                    COLLECT_SECOND3_HEADING
+            );
 
-            backToShootSecond3 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(COLLECT_SECOND3_X, COLLECT_SECOND3_Y), new Pose(SHOOT_POSE_X, SHOOT_POSE_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(COLLECT_SECOND3_HEADING), Math.toRadians(SHOOT_SECOND3_HEADING))
-                    .build();
+            backToShootSecond3 = buildTurnThenDrive(
+                    follower,
+                    new Pose(COLLECT_SECOND3_X, COLLECT_SECOND3_Y),
+                    new Pose(SHOOT_POSE_X, SHOOT_POSE_Y),
+                    COLLECT_SECOND3_HEADING,
+                    SHOOT_SECOND3_HEADING
+            );
 
-            alignToCollectThird3 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(SHOOT_POSE_X, SHOOT_POSE_Y), new Pose(ALIGN_THIRD3_X, ALIGN_THIRD3_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(SHOOT_SECOND3_HEADING), Math.toRadians(ALIGN_THIRD3_HEADING))
-                    .build();
+            alignToCollectThird3 = buildTurnThenDrive(
+                    follower,
+                    new Pose(SHOOT_POSE_X, SHOOT_POSE_Y),
+                    new Pose(ALIGN_THIRD3_X, ALIGN_THIRD3_Y),
+                    SHOOT_SECOND3_HEADING,
+                    ALIGN_THIRD3_HEADING
+            );
 
-            collectThird3 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(ALIGN_THIRD3_X, ALIGN_THIRD3_Y), new Pose(COLLECT_THIRD3_X, COLLECT_THIRD3_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(ALIGN_THIRD3_HEADING), Math.toRadians(COLLECT_THIRD3_HEADING))
-                    .build();
+            collectThird3 = buildTurnThenDrive(
+                    follower,
+                    new Pose(ALIGN_THIRD3_X, ALIGN_THIRD3_Y),
+                    new Pose(COLLECT_THIRD3_X, COLLECT_THIRD3_Y),
+                    ALIGN_THIRD3_HEADING,
+                    COLLECT_THIRD3_HEADING
+            );
 
-            backToShootThird3 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(COLLECT_THIRD3_X, COLLECT_THIRD3_Y), new Pose(SHOOT_POSE_X, SHOOT_POSE_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(COLLECT_THIRD3_HEADING), Math.toRadians(SHOOT_FINAL_HEADING))
-                    .build();
+            backToShootThird3 = buildTurnThenDrive(
+                    follower,
+                    new Pose(COLLECT_THIRD3_X, COLLECT_THIRD3_Y),
+                    new Pose(SHOOT_POSE_X, SHOOT_POSE_Y),
+                    COLLECT_THIRD3_HEADING,
+                    SHOOT_FINAL_HEADING
+            );
 
-            moveForRP = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(SHOOT_POSE_X, SHOOT_POSE_Y), new Pose(MOVE_RP_X, MOVE_RP_Y)))
-                    .setLinearHeadingInterpolation(Math.toRadians(SHOOT_FINAL_HEADING), Math.toRadians(MOVE_RP_HEADING))
-                    .build();
+            moveForRP = buildTurnThenDrive(
+                    follower,
+                    new Pose(SHOOT_POSE_X, SHOOT_POSE_Y),
+                    new Pose(MOVE_RP_X, MOVE_RP_Y),
+                    SHOOT_FINAL_HEADING,
+                    MOVE_RP_HEADING
+            );
         }
     }
 }
