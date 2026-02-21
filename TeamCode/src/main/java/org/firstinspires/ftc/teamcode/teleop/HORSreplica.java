@@ -332,6 +332,7 @@ public class HORSreplica extends LinearOpMode {
             telemetry.addData("Fast Mode", fastMode);
             telemetry.addData("Dual Motors", flywheel.isDualMotor() ? "YES" : "NO");
             telemetry.addData("Reference Heading", "%.1f°", Math.toDegrees(imuAlignAngle));
+            telemetry.addData("Current Heading", "%.1f",(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES)));
             telemetry.update();
         }
     }
