@@ -136,19 +136,19 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 115)
     public static double SHOOT_FINAL_HEADING = 135;
     @Sorter(sort = 120)
-    public static double COLLECT_FIRST3_X = 22.0;
+    public static double COLLECT_FIRST3_X = 25.0;
     @Sorter(sort = 121)
     public static double COLLECT_FIRST3_Y = 88.0;
     @Sorter(sort = 122)
     public static double COLLECT_FIRST3_HEADING = 180.0;
     @Sorter(sort = 125)
-    public static double GATE_ALIGN_X = 24.0;
+    public static double GATE_ALIGN_X = 26.0;
     @Sorter(sort = 126)
     public static double GATE_ALIGN_Y = 74.0;
     @Sorter(sort = 127)
     public static double GATE_ALIGN_HEADING = 180.0;
     @Sorter(sort = 130)
-    public static double GATE_CLEAR_X = 18.0;
+    public static double GATE_CLEAR_X = 20.0;
     @Sorter(sort = 131)
     public static double GATE_CLEAR_Y = 74.0;
     @Sorter(sort = 132)
@@ -160,7 +160,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 142)
     public static double ALIGN_SECOND3_HEADING = -175.0;
     @Sorter(sort = 150)
-    public static double COLLECT_SECOND3_X = 12.0;
+    public static double COLLECT_SECOND3_X = 14.0;
     @Sorter(sort = 151)
     public static double COLLECT_SECOND3_Y = 62.0;//58
     @Sorter(sort = 152)
@@ -172,7 +172,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 162)
     public static double ALIGN_THIRD3_HEADING = -180.0;
     @Sorter(sort = 170)
-    public static double COLLECT_THIRD3_X = 12.0;
+    public static double COLLECT_THIRD3_X = 14.0;
     @Sorter(sort = 171)
     public static double COLLECT_THIRD3_Y = 39.0;
     @Sorter(sort = 172)
@@ -185,7 +185,7 @@ public class HORSreplicaBlueClose extends OpMode {
     public static double MOVE_RP_HEADING = 135.0;
 
     // Shooter target RPM (HORS replica default)
-    private static final double AUTO_SHOOTER_RPM = 3600;
+    private static final double AUTO_SHOOTER_RPM = 3900;
 
     public HORSreplicaBlueClose() {}
 
