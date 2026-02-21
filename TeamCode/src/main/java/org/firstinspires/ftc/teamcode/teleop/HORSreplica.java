@@ -51,7 +51,7 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1)
-    public static int power = 3850;  // DEFAULT RPM IS 2600
+    public static int power = 3800;  // DEFAULT RPM IS 2600
 
     private IMU imu = null;
 
@@ -105,10 +105,10 @@ public class HORSreplica extends LinearOpMode {
             }
             idle();
         }
-        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     // Launch System
@@ -183,10 +183,10 @@ public class HORSreplica extends LinearOpMode {
         flywheel = new FlywheelModified(shooter, shooter2, telemetry, voltageSensor);
         flywheel.setTargetRPM(power);
         flywheel.setShooterOn(false);// Keep shooter OFF during init
-        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Set gate to closed position during init
         gate.setPosition(0.3);

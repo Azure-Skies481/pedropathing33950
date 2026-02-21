@@ -28,7 +28,7 @@ public class HORSreplicaBlueClose extends OpMode {
     private Follower follower;
     private Paths paths;
 
-    private enum AutoState { IDLE, WAIT_FOR_SHOOTER, RUNNING_PATH, WAIT_FIRST_SHOOT, CLOSED_INTAKE_SEQUENCE, PRE_ACTION, INTAKE_RUN, WAIT_GATE_ALIGN, WAIT_GATE_CLEAR, FINISHED }
+    private enum AutoState { IDLE, WAIT_FOR_SHOOTER, RUNNING_PATH, WAIT_FIRST_SHOOT, CLOSED_INTAKE_SEQUENCE, PRE_ACTION, INTAKE_RUN, FINISHED }
     private AutoState state = AutoState.IDLE;
 
     private int currentPathIndex = 0;
@@ -40,8 +40,6 @@ public class HORSreplicaBlueClose extends OpMode {
 
     private Timer preActionTimer;
     private Timer poseWaitTimer;
-    private Timer gateAlignWaitTimer;
-    private Timer gateClearWaitTimer;
     private Timer firstShootWaitTimer;
 
     private long shooterWaitStartMs = -1;
@@ -58,8 +56,6 @@ public class HORSreplicaBlueClose extends OpMode {
 
     private long autoStartMs = -1;
     private boolean shutdownDone = false;
-
-    private int intakeSegmentEnd = -1;
 
     private boolean preActionTimerStarted = false;
 
@@ -108,10 +104,6 @@ public class HORSreplicaBlueClose extends OpMode {
     public static double GATE_OPEN_TOLERANCE_IN = 10.0;
     @Sorter(sort = 33)
     public static double GATE_CLOSE_TOLERANCE_IN = 10.0;
-    @Sorter(sort = 34)
-    public static double GATE_ALIGN_WAIT_SECONDS = 0.25;
-    @Sorter(sort = 35)
-    public static double WAIT_AFTER_GATE_CLEAR_SECONDS = 0.7;
 
     // ========================================
     // PATH POSES - START POSITION & SHOOT/ALIGN HEADINGS
@@ -137,43 +129,31 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 120)
     public static double COLLECT_FIRST3_X = 25.0;
     @Sorter(sort = 121)
-    public static double COLLECT_FIRST3_Y = 95.0;
+    public static double COLLECT_FIRST3_Y = 88.0;
     @Sorter(sort = 122)
     public static double COLLECT_FIRST3_HEADING = 180.0;
-    @Sorter(sort = 125)
-    public static double GATE_ALIGN_X = 26.0;
-    @Sorter(sort = 126)
-    public static double GATE_ALIGN_Y = 80.0;
-    @Sorter(sort = 127)
-    public static double GATE_ALIGN_HEADING = 180.0;
-    @Sorter(sort = 130)
-    public static double GATE_CLEAR_X = 20.0;
-    @Sorter(sort = 131)
-    public static double GATE_CLEAR_Y = 80.0;
-    @Sorter(sort = 132)
-    public static double GATE_CLEAR_HEADING = 180.0;
     @Sorter(sort = 140)
     public static double ALIGN_SECOND3_X = 50.0;
     @Sorter(sort = 141)
-    public static double ALIGN_SECOND3_Y = 70.0;
+    public static double ALIGN_SECOND3_Y = 58.0;
     @Sorter(sort = 142)
     public static double ALIGN_SECOND3_HEADING = -175.0;
     @Sorter(sort = 150)
-    public static double COLLECT_SECOND3_X = 20.0;
+    public static double COLLECT_SECOND3_X = 14.0;
     @Sorter(sort = 151)
-    public static double COLLECT_SECOND3_Y = 70.0; // per your provided paths
+    public static double COLLECT_SECOND3_Y = 58;
     @Sorter(sort = 152)
     public static double COLLECT_SECOND3_HEADING = -180.0;
     @Sorter(sort = 160)
     public static double ALIGN_THIRD3_X = 50.0;
     @Sorter(sort = 161)
-    public static double ALIGN_THIRD3_Y = 45.0;
+    public static double ALIGN_THIRD3_Y = 35.0;
     @Sorter(sort = 162)
     public static double ALIGN_THIRD3_HEADING = -180.0;
     @Sorter(sort = 170)
-    public static double COLLECT_THIRD3_X = 20;
+    public static double COLLECT_THIRD3_X = 14.0;
     @Sorter(sort = 171)
-    public static double COLLECT_THIRD3_Y = 45.0; // per your provided paths
+    public static double COLLECT_THIRD3_Y = 35.0;
     @Sorter(sort = 172)
     public static double COLLECT_THIRD3_HEADING = 180.0;
     @Sorter(sort = 180)
@@ -183,7 +163,6 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 182)
     public static double MOVE_RP_HEADING = 135.0;
 
-    // Shooter target RPM (HORS replica default)
     private static final double AUTO_SHOOTER_RPM = 3900;
 
     public HORSreplicaBlueClose() {}
@@ -200,16 +179,12 @@ public class HORSreplicaBlueClose extends OpMode {
         timedIntakeTimer = new Timer();
         preActionTimer = new Timer();
         poseWaitTimer = new Timer();
-        gateAlignWaitTimer = new Timer();
-        gateClearWaitTimer = new Timer();
         firstShootWaitTimer = new Timer();
 
         nextPathIndex = -1;
-        intakeSegmentEnd = -1;
         timedIntakeActive = false;
         preActionTimerStarted = false;
 
-        // Map hardware
         try {
             shooterMotor = hardwareMap.get(DcMotorEx.class, "shooter");
             shooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -248,7 +223,6 @@ public class HORSreplicaBlueClose extends OpMode {
             voltageSensor = null;
         }
 
-        // Initialize flywheel controller (HORS replica)
         try {
             if (shooterMotor != null) {
                 flywheel = new FlywheelModified(shooterMotor, shooterMotor2, telemetry, voltageSensor);
@@ -265,7 +239,7 @@ public class HORSreplicaBlueClose extends OpMode {
 
     @Override
     public void init_loop() {
-        // No turret to hold; keep flywheel off
+        // keep flywheel off
     }
 
     @Override
@@ -292,7 +266,7 @@ public class HORSreplicaBlueClose extends OpMode {
 
         runStateMachine(nowMs);
 
-        // Gate updates except during WAIT_FIRST_SHOOT (keep closed)
+        // Gate updates except during WAIT_FIRST_SHOOT (keep closed then)
         if (state != AutoState.WAIT_FIRST_SHOOT) {
             updateGate();
         }
@@ -344,22 +318,16 @@ public class HORSreplicaBlueClose extends OpMode {
 
     private void startIntake() { startIntake(INTAKE_ON_POWER); }
     private void startIntake(double power) {
-        try {
-            if (intakeMotor != null) intakeMotor.setPower(power);
-        } catch (Exception e) {
-            panelsTelemetry.debug("Intake", "startIntake error: " + e.getMessage());
-        }
+        try { if (intakeMotor != null) intakeMotor.setPower(power); }
+        catch (Exception e) { panelsTelemetry.debug("Intake", "startIntake error: " + e.getMessage()); }
     }
     private void stopIntake() {
-        try {
-            if (intakeMotor != null) intakeMotor.setPower(0.0);
-        } catch (Exception e) {
-            panelsTelemetry.debug("Intake", "stopIntake error: " + e.getMessage());
-        }
+        try { if (intakeMotor != null) intakeMotor.setPower(0.0); }
+        catch (Exception e) { panelsTelemetry.debug("Intake", "stopIntake error: " + e.getMessage()); }
     }
 
     private boolean endsAtShoot(int pathIndex) {
-        return pathIndex == 1 || pathIndex == 5 || pathIndex == 8 || pathIndex == 11;
+        return pathIndex == 1 || pathIndex == 3 || pathIndex == 6 || pathIndex == 9;
     }
 
     private double distanceToShootPose() {
@@ -374,7 +342,8 @@ public class HORSreplicaBlueClose extends OpMode {
     }
 
     private void startPath(int idx) {
-        if (idx < 1 || idx > 12) {
+        // paths 1..10 only now
+        if (idx < 1 || idx > 10) {
             currentPathIndex = 0;
             state = AutoState.FINISHED;
             return;
@@ -382,7 +351,7 @@ public class HORSreplicaBlueClose extends OpMode {
 
         startIntake(INTAKE_ON_POWER);
 
-        if (idx == 5 || idx == 8 || idx == 11) {
+        if (idx == 3 || idx == 6 || idx == 9) { // back-to-shoot legs
             timedIntakeTimer.resetTimer();
             timedIntakeActive = true;
             panelsTelemetry.debug("TimedIntake", "Started timed intake for path " + idx);
@@ -391,16 +360,14 @@ public class HORSreplicaBlueClose extends OpMode {
         switch (idx) {
             case 1: follower.followPath(paths.startToShoot); break;
             case 2: follower.followPath(paths.collectFirst3); break;
-            case 3: follower.followPath(paths.gateAlign); break;
-            case 4: follower.followPath(paths.gateClear); break;
-            case 5: follower.followPath(paths.backToShootFirst3); break;
-            case 6: follower.followPath(paths.alignToCollectSecond3); break;
-            case 7: follower.followPath(paths.collectSecond3); break;
-            case 8: follower.followPath(paths.backToShootSecond3); break;
-            case 9: follower.followPath(paths.alignToCollectThird3); break;
-            case 10: follower.followPath(paths.collectThird3); break;
-            case 11: follower.followPath(paths.backToShootThird3); break;
-            case 12: follower.followPath(paths.moveForRP); break;
+            case 3: follower.followPath(paths.backToShootFirst3); break;
+            case 4: follower.followPath(paths.alignToCollectSecond3); break;
+            case 5: follower.followPath(paths.collectSecond3); break;
+            case 6: follower.followPath(paths.backToShootSecond3); break;
+            case 7: follower.followPath(paths.alignToCollectThird3); break;
+            case 8: follower.followPath(paths.collectThird3); break;
+            case 9: follower.followPath(paths.backToShootThird3); break;
+            case 10: follower.followPath(paths.moveForRP); break;
             default: break;
         }
 
@@ -432,22 +399,8 @@ public class HORSreplicaBlueClose extends OpMode {
                 if (!follower.isBusy()) {
                     int finished = currentPathIndex;
 
-                    if (finished == 3) {
-                        gateAlignWaitTimer.resetTimer();
-                        nextPathIndex = 4;
-                        state = AutoState.WAIT_GATE_ALIGN;
-                        break;
-                    }
-                    if (finished == 4) {
-                        gateClearWaitTimer.resetTimer();
-                        nextPathIndex = 5;
-                        state = AutoState.WAIT_GATE_CLEAR;
-                        break;
-                    }
-
                     if (endsAtShoot(finished)) {
                         nextPathIndex = finished + 1;
-                        // Only for first shoot: wait with gate closed and intake off
                         if (finished == 1) {
                             stopIntake();
                             if (gateServo != null && !gateClosed) {
@@ -462,7 +415,7 @@ public class HORSreplicaBlueClose extends OpMode {
                         }
                     } else {
                         int next = finished + 1;
-                        if (next > 12) state = AutoState.FINISHED;
+                        if (next > 10) state = AutoState.FINISHED;
                         else startPath(next);
                     }
                 }
@@ -474,24 +427,6 @@ public class HORSreplicaBlueClose extends OpMode {
                 if (waitElapsed >= PRE_ACTION_FIRST_SHOOT_WAIT_SECONDS) {
                     state = AutoState.CLOSED_INTAKE_SEQUENCE;
                     panelsTelemetry.debug("WAIT_FIRST_SHOOT", "Wait complete, entering CLOSED_INTAKE_SEQUENCE");
-                }
-                break;
-
-            case WAIT_GATE_ALIGN:
-                if (gateAlignWaitTimer.getElapsedTimeSeconds() >= GATE_ALIGN_WAIT_SECONDS) {
-                    if (nextPathIndex > 0) {
-                        startPath(nextPathIndex);
-                        nextPathIndex = -1;
-                    } else state = AutoState.FINISHED;
-                }
-                break;
-
-            case WAIT_GATE_CLEAR:
-                if (gateClearWaitTimer.getElapsedTimeSeconds() >= WAIT_AFTER_GATE_CLEAR_SECONDS) {
-                    if (nextPathIndex > 0) {
-                        startPath(nextPathIndex);
-                        nextPathIndex = -1;
-                    } else state = AutoState.FINISHED;
                 }
                 break;
 
@@ -508,7 +443,6 @@ public class HORSreplicaBlueClose extends OpMode {
                 break;
 
             case PRE_ACTION:
-                // Wait until at pose (or timeout), then time a short settle before firing intake
                 if (!preActionTimerStarted) {
                     double dist = distanceToShootPose();
                     if (dist <= START_POSE_TOLERANCE_IN || poseWaitTimer.getElapsedTimeSeconds() >= PRE_ACTION_MAX_POSE_WAIT_SECONDS) {
@@ -533,9 +467,8 @@ public class HORSreplicaBlueClose extends OpMode {
             case INTAKE_RUN:
                 if (intakeTimer.getElapsedTimeSeconds() >= INTAKE_RUN_SECONDS) {
                     startIntake(INTAKE_ON_POWER);
-                    // Slight RPM trim like original (optional small dip to reduce overshoot)
                     if (flywheel != null) flywheel.setTargetRPM(0.95 * AUTO_SHOOTER_RPM);
-                    if (nextPathIndex > 0 && nextPathIndex <= 12) {
+                    if (nextPathIndex > 0 && nextPathIndex <= 10) {
                         startPath(nextPathIndex);
                         nextPathIndex = -1;
                     } else {
@@ -571,8 +504,6 @@ public class HORSreplicaBlueClose extends OpMode {
     public static class Paths {
         public PathChain startToShoot;
         public PathChain collectFirst3;
-        public PathChain gateAlign;
-        public PathChain gateClear;
         public PathChain backToShootFirst3;
         public PathChain alignToCollectSecond3;
         public PathChain collectSecond3;
@@ -582,16 +513,13 @@ public class HORSreplicaBlueClose extends OpMode {
         public PathChain backToShootThird3;
         public PathChain moveForRP;
 
-        // Tiny move to force the follower to accept the turn segment (avoids zero-length path issues)
         private static final double TURN_EPS = 0.01;
 
         private PathChain buildTurnThenDrive(Follower follower, Pose start, Pose end, double startHeadingDeg, double targetHeadingDeg) {
             Pose turnNudge = new Pose(start.getX() + TURN_EPS, start.getY() + TURN_EPS);
             return follower.pathBuilder()
-                    // In-place-ish heading change (tiny move to avoid zero-length)
                     .addPath(new BezierLine(start, turnNudge))
                     .setLinearHeadingInterpolation(Math.toRadians(startHeadingDeg), Math.toRadians(targetHeadingDeg))
-                    // Drive while holding the new heading
                     .addPath(new BezierLine(start, end))
                     .setLinearHeadingInterpolation(Math.toRadians(targetHeadingDeg), Math.toRadians(targetHeadingDeg))
                     .build();
@@ -614,27 +542,11 @@ public class HORSreplicaBlueClose extends OpMode {
                     COLLECT_FIRST3_HEADING
             );
 
-            gateAlign = buildTurnThenDrive(
-                    follower,
-                    new Pose(COLLECT_FIRST3_X, COLLECT_FIRST3_Y),
-                    new Pose(GATE_ALIGN_X, GATE_ALIGN_Y),
-                    COLLECT_FIRST3_HEADING,
-                    GATE_ALIGN_HEADING
-            );
-
-            gateClear = buildTurnThenDrive(
-                    follower,
-                    new Pose(GATE_ALIGN_X, GATE_ALIGN_Y),
-                    new Pose(GATE_CLEAR_X, GATE_CLEAR_Y),
-                    GATE_ALIGN_HEADING,
-                    GATE_CLEAR_HEADING
-            );
-
             backToShootFirst3 = buildTurnThenDrive(
                     follower,
-                    new Pose(GATE_CLEAR_X, GATE_CLEAR_Y),
+                    new Pose(COLLECT_FIRST3_X, COLLECT_FIRST3_Y),
                     new Pose(SHOOT_POSE_X, SHOOT_POSE_Y),
-                    GATE_CLEAR_HEADING,
+                    COLLECT_FIRST3_HEADING,
                     SHOOT_HEADING_FIRST3
             );
 
