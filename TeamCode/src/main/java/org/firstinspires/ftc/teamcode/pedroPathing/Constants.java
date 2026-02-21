@@ -24,7 +24,9 @@ public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(10.2)
             .forwardZeroPowerAcceleration(-30.08)
-            .lateralZeroPowerAcceleration(-52.71);
+            .lateralZeroPowerAcceleration(-52.71)
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.005, 0.035, 0, 0.05))
+            .headingPIDFCoefficients(new PIDFCoefficients(0.0006, 0.003, 0, 0.9));
 
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);

@@ -51,7 +51,7 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1)
-    public static int power = 2600;  // DEFAULT RPM IS 2600
+    public static int power = 3600;  // DEFAULT RPM IS 2600
 
     private IMU imu = null;
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
@@ -159,7 +159,7 @@ public class HORSreplica extends LinearOpMode {
         try {
             shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
             // shooter2 spins OPPOSITE direction mechanically, so REVERSE makes it spin same effective direction
-            shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
+            shooter2.setDirection(DcMotorSimple.Direction.FORWARD);
             telemetry.addData("Shooter2", "Initialized ✓");
         } catch (IllegalArgumentException e) {
             shooter2 = null;
