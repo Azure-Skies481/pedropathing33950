@@ -126,7 +126,7 @@ public class AutoCloseBluePedro extends LinearOpMode {
         if (isStopRequested()) return;
 
         gate.setPosition(0.3);
-        flywheel.setTargetRPM(1300);
+        flywheel.setTargetRPM(3600);
         flywheel.setShooterOn(true);
 
         long spinupStart = System.currentTimeMillis();
