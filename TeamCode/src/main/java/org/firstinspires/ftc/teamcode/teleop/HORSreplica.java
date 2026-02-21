@@ -55,7 +55,7 @@ public class HORSreplica extends LinearOpMode {
 
     private IMU imu = null;
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-            RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+            RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
     ElapsedTime Timer = new ElapsedTime();
 

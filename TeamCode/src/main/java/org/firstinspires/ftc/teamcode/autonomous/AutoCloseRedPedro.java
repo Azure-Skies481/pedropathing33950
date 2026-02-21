@@ -125,7 +125,7 @@ public class AutoCloseRedPedro extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
-        gate.setPosition(0.36);
+        gate.setPosition(0.3);
         flywheel.setTargetRPM(1300);
         flywheel.setShooterOn(true);
 
@@ -140,37 +140,37 @@ public class AutoCloseRedPedro extends LinearOpMode {
         }
 
         runPath(goForward, "goForward");
-        gate.setPosition(0.5);
+        gate.setPosition(0);
         intake.setPower(0.5);
         sleep(750);
         intake.setPower(0);
-        gate.setPosition(0.36);
+        gate.setPosition(0.3);
 
         runPath(getBall1, "getBall1");
         runPath(goBack1, "goBack1");
-        gate.setPosition(0.5);
+        gate.setPosition(0);
         intake.setPower(0.5);
         sleep(750);
         intake.setPower(0);
-        gate.setPosition(0.36);
+        gate.setPosition(0.3);
 
         runPath(goGetBall2, "goGetBall2");
         runPath(getBall2, "getBall2");
         runPath(goBack2, "goBack2");
-        gate.setPosition(0.5);
+        gate.setPosition(0);
         intake.setPower(0.5);
         sleep(750);
         intake.setPower(0);
-        gate.setPosition(0.36);
+        gate.setPosition(0.3);
 
         runPath(goGetBall3, "goGetBall3");
         runPath(getBall3, "getBall3");
         runPath(goBack3, "goBack3");
-        gate.setPosition(0.5);
+        gate.setPosition(0);
         intake.setPower(0.5);
         sleep(750);
         intake.setPower(0);
-        gate.setPosition(0.36);
+        gate.setPosition(0.3);
 
         runPath(goOut, "goOut");
 
