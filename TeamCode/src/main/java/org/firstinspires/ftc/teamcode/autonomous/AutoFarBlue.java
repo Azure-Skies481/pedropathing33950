@@ -95,7 +95,9 @@ public class AutoFarBlue extends LinearOpMode {
         imu.initialize(parameters);
         imu.resetYaw();
         resetEncoders();
+        ElapsedTime turnTimer = new ElapsedTime();
         while (opModeIsActive()){
+            double skibidi = turnTimer.time(TimeUnit.MILLISECONDS);
             double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
             double error = angle - imuAngle;
             double power = 0.02*error;
@@ -108,7 +110,7 @@ public class AutoFarBlue extends LinearOpMode {
             telemetry.addData("imu: ", imuAngle);
             telemetry.addData("error: ", error);
             telemetry.update();
-            if (Math.abs(error) <= 2.5 && velocity<=0.3){
+            if ((Math.abs(error) <= 2.5 && velocity<=0.3) || Math.abs(6000-skibidi)<=50){
                 telemetry.addData("skibidi", "yes it's done yo");
                 telemetry.update();
                 break;
@@ -163,17 +165,17 @@ public class AutoFarBlue extends LinearOpMode {
         ElapsedTime timer = new ElapsedTime();
         moveForwardTime(150);
 
-        turn(20);
+        turn(22);
         while (opModeIsActive()){
             time = timer.time(TimeUnit.MILLISECONDS);
 
-            shooter.setPower(shootingHelp.getPID(shooter, 3650));
-            if (Math.abs(4000-time)<=50) {
+            shooter.setPower(shootingHelp.getPID(shooter, 3900));
+            if (Math.abs(5000-time)<=50) {
                 gate.setPosition(0.3);
 
                 intake.setPower(-1);
             }
-            if (Math.abs(14000 - time) <= 50){
+            if (Math.abs(12000 - time) <= 50){
                 intake.setPower(0);
                 shooter.setPower(0);
                 break;
