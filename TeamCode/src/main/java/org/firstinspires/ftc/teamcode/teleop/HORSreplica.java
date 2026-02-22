@@ -25,6 +25,7 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx shooter = null;
     private DcMotorEx shooter2 = null;
     private Servo gate = null;
+    private Servo hoodservo = null;
     private VoltageSensor voltageSensor = null;
 
     private double driveSpeed;
@@ -160,7 +161,7 @@ public class HORSreplica extends LinearOpMode {
         try {
             shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
             // shooter2 spins OPPOSITE direction mechanically, so REVERSE makes it spin same effective direction
-            shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
+            shooter2.setDirection(DcMotorSimple.Direction.FORWARD);
             telemetry.addData("Shooter2", "Initialized ✓");
         } catch (IllegalArgumentException e) {
             shooter2 = null;
@@ -168,6 +169,7 @@ public class HORSreplica extends LinearOpMode {
         }
 
         gate = hardwareMap.get(Servo.class, "gateServo");
+        hoodservo = hardwareMap.get(Servo.class, "hoodservo");
 
         // Get voltage sensor
         try {
@@ -248,6 +250,8 @@ public class HORSreplica extends LinearOpMode {
                 dpadLeftWasPressed = false;
             }
 
+
+
             if (gamepad1.dpad_right || gamepad2.dpad_right) {
                 if (!dpadRightWasPressed) {
                     power = power + 50;
@@ -324,7 +328,18 @@ public class HORSreplica extends LinearOpMode {
 
             // Hood Servo
             if (gamepad2.dpad_up) {
+                hoodservo.setPosition(0.28);
+                flywheel.setTargetRPM(4450);
+            }
 
+            if (gamepad2.right_bumper) {
+                hoodservo.setPosition(0.5);
+                flywheel.setTargetRPM(3800);
+            }
+
+            if (gamepad2.left_bumper) {
+                hoodservo.setPosition(0.5);
+                flywheel.setTargetRPM(3200);
             }
 
             // Telemetry
