@@ -182,7 +182,8 @@ public class HORSreplica extends LinearOpMode {
         // Initialize FlywheelModified with both motors
         flywheel = new FlywheelModified(shooter, shooter2, telemetry, voltageSensor);
         flywheel.setTargetRPM(power);
-        flywheel.setShooterOn(false);// Keep shooter OFF during init
+        flywheel.setShooterOn(false);
+        // Keep shooter OFF during init
 //        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -296,7 +297,7 @@ public class HORSreplica extends LinearOpMode {
             // Reset IMU reference point
             if (gamepad1.a || gamepad2.a) {
                 if (!imuReferenceResetWasPressed) {
-                    imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
+                    imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
                 }
                 imuReferenceResetWasPressed = true;
             } else {
