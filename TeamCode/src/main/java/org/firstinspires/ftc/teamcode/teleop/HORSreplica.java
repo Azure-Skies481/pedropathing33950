@@ -52,12 +52,11 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1)
-    public static int power = 3800;  // DEFAULT RPM IS 2600
+    public static int power = 2600;  // DEFAULT RPM IS 2600
 
     private IMU imu = null;
-
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-            RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+            RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
     ElapsedTime Timer = new ElapsedTime();
 
@@ -106,10 +105,10 @@ public class HORSreplica extends LinearOpMode {
             }
             idle();
         }
-//        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     // Launch System
@@ -118,7 +117,7 @@ public class HORSreplica extends LinearOpMode {
         Timer.reset();
         double skibidi = Timer.time(TimeUnit.MILLISECONDS);
 
-        gate.setPosition(0.1);  // Open gate
+        gate.setPosition(0.0);  // Open gate
         intake.setPower(-0.85);
         while (skibidi < 1000 && opModeIsActive()) {
             skibidi = Timer.time(TimeUnit.MILLISECONDS);
@@ -138,7 +137,6 @@ public class HORSreplica extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         imu = hardwareMap.get(IMU.class, "imu");
-
         imu.initialize(parameters);
 
         frontLeftMotor = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
@@ -162,7 +160,7 @@ public class HORSreplica extends LinearOpMode {
         try {
             shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
             // shooter2 spins OPPOSITE direction mechanically, so REVERSE makes it spin same effective direction
-            shooter2.setDirection(DcMotorSimple.Direction.FORWARD);
+            shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
             telemetry.addData("Shooter2", "Initialized ✓");
         } catch (IllegalArgumentException e) {
             shooter2 = null;
@@ -183,12 +181,7 @@ public class HORSreplica extends LinearOpMode {
         // Initialize FlywheelModified with both motors
         flywheel = new FlywheelModified(shooter, shooter2, telemetry, voltageSensor);
         flywheel.setTargetRPM(power);
-        flywheel.setShooterOn(false);
-        // Keep shooter OFF during init
-//        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        flywheel.setShooterOn(false);  // Keep shooter OFF during init
 
         // Set gate to closed position during init
         gate.setPosition(0.3);
@@ -298,7 +291,7 @@ public class HORSreplica extends LinearOpMode {
             // Reset IMU reference point
             if (gamepad1.a || gamepad2.a) {
                 if (!imuReferenceResetWasPressed) {
-                    imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+                    imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
                 }
                 imuReferenceResetWasPressed = true;
             } else {
@@ -306,7 +299,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate position logic
-            gate.setPosition(gateOpen ? 0.3 : 0.1);
+            gate.setPosition(gateOpen ? 0.0 : 0.3);
 
             // Update PIDF controller
             flywheel.update();
@@ -329,6 +322,11 @@ public class HORSreplica extends LinearOpMode {
                 imuAlign();
             }
 
+            // Hood Servo
+            if (gamepad2.dpad_up) {
+
+            }
+
             // Telemetry
             telemetry.addData("Shooter RPM", "%.0f", flywheel.getCurrentRPM());
             telemetry.addData("Target RPM", "%.0f", flywheel.getTargetRPM());
@@ -340,7 +338,6 @@ public class HORSreplica extends LinearOpMode {
             telemetry.addData("Fast Mode", fastMode);
             telemetry.addData("Dual Motors", flywheel.isDualMotor() ? "YES" : "NO");
             telemetry.addData("Reference Heading", "%.1f°", Math.toDegrees(imuAlignAngle));
-            telemetry.addData("Current Heading", "%.1f",(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES)));
             telemetry.update();
         }
     }
