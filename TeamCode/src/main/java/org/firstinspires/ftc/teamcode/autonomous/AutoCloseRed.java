@@ -30,7 +30,7 @@ public class AutoCloseRed extends LinearOpMode{
     private DcMotorEx shooter = null;
     private DcMotorEx shooter2 = null;
     private Servo gate = null; //new servo js added
-    private double maxspeed = 2800;
+    private double maxspeed = 3600;
     private double feedback = 0.001;
     private double power = 1550;
     private double drivespeed;

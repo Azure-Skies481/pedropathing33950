@@ -35,7 +35,7 @@ public class AutoFarBlue extends LinearOpMode {
 
     private IMU imu = null;
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-            RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+            RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
     public void moveForward(double amount) {
         resetEncoders();
@@ -49,7 +49,26 @@ public class AutoFarBlue extends LinearOpMode {
             backLeftMotor.setPower(power);
             backRightMotor.setPower(power);
             double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity() + frontRightMotor.getVelocity() + backRightMotor.getVelocity())/4;
+            telemetry.addData("error", error);
+            telemetry.addData("velocity", velocity);
+            telemetry.addData("position", position);
+            telemetry.update();
             if (Math.abs(error) <= 15 && velocity <= 0.3) break;
+        }
+        frontLeftMotor.setPower(0);
+        frontRightMotor.setPower(0);
+        backLeftMotor.setPower(0);
+        backRightMotor.setPower(0);
+    }
+    public void moveForwardTime(double time){
+        ElapsedTime moveTimer = new ElapsedTime();
+        while (opModeIsActive()){
+            double currentTime = moveTimer.time(TimeUnit.MILLISECONDS);
+            frontLeftMotor.setPower(0.5);
+            backLeftMotor.setPower(0.5);
+            frontRightMotor.setPower(0.5);
+            backRightMotor.setPower(0.5);
+            if(Math.abs(time-currentTime)<=50) break;
         }
         frontLeftMotor.setPower(0);
         frontRightMotor.setPower(0);
@@ -76,7 +95,9 @@ public class AutoFarBlue extends LinearOpMode {
         imu.initialize(parameters);
         imu.resetYaw();
         resetEncoders();
+        ElapsedTime turnTimer = new ElapsedTime();
         while (opModeIsActive()){
+            double skibidi = turnTimer.time(TimeUnit.MILLISECONDS);
             double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
             double error = angle - imuAngle;
             double power = 0.02*error;
@@ -89,7 +110,7 @@ public class AutoFarBlue extends LinearOpMode {
             telemetry.addData("imu: ", imuAngle);
             telemetry.addData("error: ", error);
             telemetry.update();
-            if (Math.abs(error) <= 2.5 && velocity<=0.3){
+            if ((Math.abs(error) <= 2.5 && velocity<=0.3) || Math.abs(6000-skibidi)<=50){
                 telemetry.addData("skibidi", "yes it's done yo");
                 telemetry.update();
                 break;
@@ -120,7 +141,7 @@ public class AutoFarBlue extends LinearOpMode {
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         frontLeftMotor.setTargetPosition(0);
         frontRightMotor.setTargetPosition(0);
@@ -134,7 +155,7 @@ public class AutoFarBlue extends LinearOpMode {
         gate = hardwareMap.get(Servo.class, "gateServo"); //new servo js added
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         waitForStart();
@@ -142,30 +163,27 @@ public class AutoFarBlue extends LinearOpMode {
 
 
         ElapsedTime timer = new ElapsedTime();
-        turn(30);
-        while (opModeIsActive()){
+        moveForwardTime(150);
 
+        turn(22);
+        while (opModeIsActive()){
             time = timer.time(TimeUnit.MILLISECONDS);
 
-            shooter.setPower(shootingHelp.getPID(shooter, 1650));
+            shooter.setPower(shootingHelp.getPID(shooter, 3900));
+            if (Math.abs(5000-time)<=50) {
+                gate.setPosition(0.3);
 
-            if (Math.abs(3500 - time) <= 50) {
-                gate.setPosition(0.5);
-            }
-            if (Math.abs(3900 - time) <= 50){
                 intake.setPower(-1);
             }
-            if (Math.abs(4000 - time) <= 50){
-                intake.setPower(0);
-            }
-            if (Math.abs(8000 - time) <= 50){
-                intake.setPower(-1);
-            }
-            if (Math.abs(9000 - time) <= 50){
+            if (Math.abs(12000 - time) <= 50){
                 intake.setPower(0);
                 shooter.setPower(0);
                 break;
             }
         }
-        moveForward(-450);
+        moveForwardTime(800);
+
+
+
+
     }}

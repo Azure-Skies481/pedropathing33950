@@ -16,7 +16,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 
 @Autonomous
-public class AutoCloseRedPedro extends LinearOpMode {
+public class AutoCloseBluePedro extends LinearOpMode {
     private Follower follower;
 
     private DcMotorEx intake;
@@ -31,11 +31,11 @@ public class AutoCloseRedPedro extends LinearOpMode {
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
-    private final Pose scoringPose = new Pose(84,84,Math.toRadians(45));
-    private final Pose startingPose = new Pose(123,123,Math.toRadians(45));
-    private final Pose pickup1Pose = new Pose(100, 84, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2Pose = new Pose(100, 60, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose pickup3Pose = new Pose(100, 35, Math.toRadians(0));
+    private final Pose scoringPose = new Pose(60,84,Math.toRadians(135));
+    private final Pose startingPose = new Pose(21,121,Math.toRadians(135));
+    private final Pose pickup1Pose = new Pose(50, 85, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2Pose = new Pose(50, 60, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose pickup3Pose = new Pose(50, 36, Math.toRadians(180));
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -73,60 +73,60 @@ public class AutoCloseRedPedro extends LinearOpMode {
         flywheel = new FlywheelModified(shooter, telemetry, battery);
 
         PathChain goForward = follower.pathBuilder().addPath(
-                        new BezierLine(new Pose(123.000, 123.000), new Pose(84.000, 84.000)))
-                .setLinearHeadingInterpolation(Math.toRadians(215), Math.toRadians(215))
+                        new BezierLine(new Pose(21.000, 121.000), new Pose(60.000, 84.000)))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(135))
                 .build();
 
         PathChain getBall1 = follower.pathBuilder().addPath(
-                        new BezierLine(new Pose(84.000, 84.000), new Pose(129.000, 84.000)))
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                        new BezierLine(new Pose(50.000, 85.000), new Pose(25.000, 85.000)))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         PathChain goBack1 = follower.pathBuilder().addPath(
-                        new BezierLine(new Pose(129.000, 84.000), new Pose(84.000, 84.000)))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-135))
+                        new BezierLine(new Pose(35.000, 85.000), scoringPose))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                 .build();
 
         PathChain goGetBall2 = follower.pathBuilder().addPath(
-                        new BezierLine(new Pose(84.000, 84.000), new Pose(104.000, 60.000)))
-                .setLinearHeadingInterpolation(Math.toRadians(-135), Math.toRadians(0))
+                        new BezierLine(scoringPose, pickup2Pose))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
                 .build();
 
         PathChain getBall2 = follower.pathBuilder().addPath(
-                        new BezierLine(new Pose(104.000, 60.000), new Pose(129.000, 60.000)))
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                        new BezierLine(new Pose(50.000, 60.000), new Pose(25.000, 60.000)))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         PathChain goBack2 = follower.pathBuilder().addPath(
-                        new BezierLine(new Pose(129.000, 60.000), new Pose(84.000, 84.000)))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-135))
+                        new BezierLine(new Pose(25.000, 60.000), scoringPose))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                 .build();
 
         PathChain goGetBall3 = follower.pathBuilder().addPath(
-                        new BezierLine(new Pose(84.000, 84.000), new Pose(104.000, 36.000)))
-                .setLinearHeadingInterpolation(Math.toRadians(-135), Math.toRadians(0))
+                        new BezierLine(scoringPose, pickup3Pose))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
                 .build();
 
         PathChain getBall3 = follower.pathBuilder().addPath(
-                        new BezierLine(new Pose(104.000, 36.000), new Pose(129.000, 36.000)))
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                        new BezierLine(new Pose(50.000, 36.000), new Pose(25.000, 36.000)))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         PathChain goBack3 = follower.pathBuilder().addPath(
-                        new BezierLine(new Pose(129.000, 36.000), new Pose(84.000, 84.000)))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-135))
+                        new BezierLine(new Pose(25.000, 36.000), scoringPose))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                 .build();
 
         PathChain goOut = follower.pathBuilder().addPath(
-                        new BezierLine(new Pose(84.000, 84.000), new Pose(105.000, 84.000)))
-                .setLinearHeadingInterpolation(Math.toRadians(-135), Math.toRadians(0))
+                        new BezierLine(scoringPose, new Pose(35.000, 80.000)))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(270))
                 .build();
 
         waitForStart();
         if (isStopRequested()) return;
 
         gate.setPosition(0.3);
-        flywheel.setTargetRPM(1300);
+        flywheel.setTargetRPM(3600);
         flywheel.setShooterOn(true);
 
         long spinupStart = System.currentTimeMillis();
@@ -148,7 +148,7 @@ public class AutoCloseRedPedro extends LinearOpMode {
 
         runPath(getBall1, "getBall1");
         runPath(goBack1, "goBack1");
-        gate.setPosition(0);
+        gate.setPosition(0.0);
         intake.setPower(0.5);
         sleep(750);
         intake.setPower(0);
@@ -157,7 +157,7 @@ public class AutoCloseRedPedro extends LinearOpMode {
         runPath(goGetBall2, "goGetBall2");
         runPath(getBall2, "getBall2");
         runPath(goBack2, "goBack2");
-        gate.setPosition(0);
+        gate.setPosition(0.0);
         intake.setPower(0.5);
         sleep(750);
         intake.setPower(0);
@@ -166,7 +166,7 @@ public class AutoCloseRedPedro extends LinearOpMode {
         runPath(goGetBall3, "goGetBall3");
         runPath(getBall3, "getBall3");
         runPath(goBack3, "goBack3");
-        gate.setPosition(0);
+        gate.setPosition(0.0);
         intake.setPower(0.5);
         sleep(750);
         intake.setPower(0);
