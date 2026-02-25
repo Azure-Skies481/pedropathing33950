@@ -303,7 +303,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate position logic
-            gate.setPosition(gateOpen ? 0.0 : 0.3);
+            gate.setPosition(gateOpen ? 0.1 : 0.3);
 
             // Update PIDF controller
             flywheel.update();
