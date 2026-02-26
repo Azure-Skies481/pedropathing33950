@@ -22,7 +22,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.concurrent.TimeUnit;
 
-@Autonomous
+@Autonomous (group = "test")
 public class AutoCloseBlue extends LinearOpMode {
 
     private ShootingHelp shootingHelp = new ShootingHelp();

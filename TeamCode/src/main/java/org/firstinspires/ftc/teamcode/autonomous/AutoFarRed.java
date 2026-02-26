@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
 
 import java.util.concurrent.TimeUnit;
 
-@Autonomous
+@Autonomous (group = "comp")
 public class AutoFarRed extends LinearOpMode {
     ShootingHelp shootingHelp = new ShootingHelp();
     private DcMotorEx intake = null;

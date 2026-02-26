@@ -20,7 +20,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 
-@Autonomous(name = "New Red Close", group = "Autonomous", preselectTeleOp = "A HORS OFFICIAL ⭐")
+@Autonomous(name = "New Red Close", group = "comp", preselectTeleOp = "A HORS OFFICIAL ⭐")
 @Configurable
 public class NewRedClose extends OpMode {
 

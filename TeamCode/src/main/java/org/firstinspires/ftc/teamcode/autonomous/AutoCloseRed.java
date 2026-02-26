@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
 
 import java.util.concurrent.TimeUnit;
 
-@Autonomous
+@Autonomous (group = "test")
 @Configurable
 public class AutoCloseRed extends LinearOpMode{
     private FlywheelModified flywheel;

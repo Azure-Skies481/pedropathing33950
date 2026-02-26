@@ -20,7 +20,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 
-@Autonomous(name = "HORSreplica Blue Close", group = "Autonomous", preselectTeleOp = "A HORS OFFICIAL ⭐")
+@Autonomous(name = "HORSreplica Blue Close", group = "comp", preselectTeleOp = "A HORS OFFICIAL ⭐")
 @Configurable
 public class HORSreplicaBlueClose extends OpMode {
 

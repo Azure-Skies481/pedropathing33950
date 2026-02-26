@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 
-@Autonomous
+@Autonomous (group = "test")
 public class AutoCloseRedPedro extends LinearOpMode {
     private Follower follower;
 
