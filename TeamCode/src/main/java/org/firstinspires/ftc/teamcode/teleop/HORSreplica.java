@@ -40,7 +40,7 @@ public class HORSreplica extends LinearOpMode {
     private boolean gateOpen = false;
     private boolean gateToggleWasPressed = false;
 
-    private boolean fastMode = false;
+    private boolean fastMode = true;
     private boolean fastModeWasPressed = false;
 
     private boolean imuReferenceResetWasPressed = false;
@@ -127,7 +127,7 @@ public class HORSreplica extends LinearOpMode {
             flywheel.update(); // Keep updating during launch
         }
         intake.setPower(0);
-        gate.setPosition(0.3);  // Close gate
+        gate.setPosition(0.1);  // Close gate
     }
 
     public void stopMove() {
