@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
 import org.firstinspires.ftc.teamcode.teleop.ShootingHelp.*;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.bylazar.configurables.annotations.Configurable;
@@ -22,6 +23,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.concurrent.TimeUnit;
 
+@Disabled
 @Autonomous (group = "test")
 public class AutoCloseBlue extends LinearOpMode {
 
