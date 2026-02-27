@@ -186,7 +186,7 @@ public class HORSreplica extends LinearOpMode {
         flywheel.setShooterOn(false);  // Keep shooter OFF during init
 
         // Set gate to closed position during init
-        gate.setPosition(0.3);
+        gate.setPosition(0.1);
 
         imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
 
