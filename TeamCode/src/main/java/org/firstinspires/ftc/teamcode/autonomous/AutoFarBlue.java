@@ -10,9 +10,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
 
 import java.util.concurrent.TimeUnit;
@@ -157,6 +160,7 @@ public class AutoFarBlue extends LinearOpMode {
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setDirection(DcMotorSimple.Direction.FORWARD);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        FlywheelModified flywheel = new FlywheelModified(shooter, shooter2, telemetry);
 
         waitForStart();
         if (isStopRequested()) return;
@@ -164,26 +168,22 @@ public class AutoFarBlue extends LinearOpMode {
 
         ElapsedTime timer = new ElapsedTime();
         moveForwardTime(150);
-
         turn(22);
         while (opModeIsActive()){
             time = timer.time(TimeUnit.MILLISECONDS);
-
-            shooter.setPower(shootingHelp.getPID(shooter, 3000));
+            shooter.setVelocity(shootingHelp.getPID(shooter, 2300));
+            shooter2.setPower(shooter.getPower());
+            telemetry.addData("current speed", shooter.getVelocity());
             if (Math.abs(5000-time)<=50) {
                 gate.setPosition(0.3);
-
                 intake.setPower(-1);
             }
             if (Math.abs(12000 - time) <= 50){
                 intake.setPower(0);
                 shooter.setPower(0);
+                shooter2.setPower(0);
                 break;
             }
         }
         moveForwardTime(800);
-
-
-
-
     }}
