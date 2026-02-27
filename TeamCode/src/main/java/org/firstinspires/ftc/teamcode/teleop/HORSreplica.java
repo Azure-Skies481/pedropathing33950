@@ -118,11 +118,10 @@ public class HORSreplica extends LinearOpMode {
     // Launch System
     public void launchSystem() {
         stopMove();
+        gate.setPosition(0.1);  // Open gate
+        intake.setPower(-1);
         Timer.reset();
         double skibidi = Timer.time(TimeUnit.MILLISECONDS);
-
-        gate.setPosition(0.0);  // Open gate
-        intake.setPower(-0.85);
         while (skibidi < 1000 && opModeIsActive()) {
             skibidi = Timer.time(TimeUnit.MILLISECONDS);
             flywheel.update(); // Keep updating during launch
@@ -189,7 +188,7 @@ public class HORSreplica extends LinearOpMode {
         flywheel.setShooterOn(false);  // Keep shooter OFF during init
 
         // Set gate to closed position during init
-        gate.setPosition(0.1);
+        gate.setPosition(0.3);
 
         imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
 
