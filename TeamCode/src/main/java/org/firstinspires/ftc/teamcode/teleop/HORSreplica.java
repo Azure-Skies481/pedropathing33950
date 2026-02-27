@@ -285,6 +285,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate toggle
+            /*
             if (gamepad1.b || gamepad2.b) {
                 if (!gateToggleWasPressed) {
                     gateOpen = !gateOpen;
@@ -293,6 +294,8 @@ public class HORSreplica extends LinearOpMode {
             } else {
                 gateToggleWasPressed = false;
             }
+
+             */
 
             // Reset IMU reference point
             if (gamepad1.a || gamepad2.a) {
@@ -305,7 +308,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate position logic
-            gate.setPosition(gateOpen ? 0.1 : 0.3);
+            gate.setPosition((gamepad1.b || gamepad2.b) ? 0.1 : 0.3);
 
             // Update PIDF controller
             flywheel.update();
