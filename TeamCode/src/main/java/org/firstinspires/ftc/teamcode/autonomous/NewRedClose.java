@@ -163,7 +163,7 @@ public class NewRedClose extends OpMode {
     @Sorter(sort = 182)
     public static double MOVE_RP_HEADING = 45;
 
-    private static final double AUTO_SHOOTER_RPM = 4050;
+    private static final double AUTO_SHOOTER_RPM = 3900;
 
     public NewRedClose() {}
 

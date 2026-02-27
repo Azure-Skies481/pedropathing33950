@@ -53,7 +53,7 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1)
-    public static int power = 2600;  // DEFAULT RPM IS 2600
+    public static int power = 3700;  // DEFAULT RPM IS 3800
 
     private IMU imu = null;
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
