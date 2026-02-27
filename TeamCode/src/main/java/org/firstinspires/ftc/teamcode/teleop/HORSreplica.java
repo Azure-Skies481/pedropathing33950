@@ -31,8 +31,8 @@ public class HORSreplica extends LinearOpMode {
     private double driveSpeed;
 
 
-    @Sorter(sort = 0)
-    public static double feedback = 0.0008; // not used anymore
+    //@Sorter(sort = 0)
+    //public static double feedback = 0.0008; // not used anymore
 
     private boolean shooterToggle = true;  // Start with shooter ON
     private boolean shooterToggleWasPressed = false;
@@ -65,12 +65,15 @@ public class HORSreplica extends LinearOpMode {
     private FlywheelModified flywheel;
 
     // Rumble state check
-    private boolean wasVibratingLastLoop = false;
+    //private boolean wasVibratingLastLoop = false;
 
     // IMU Align
+    /*
     public void getImuAlignAngle() {
         imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
     }
+
+     */
 
     public void imuAlign() {
         double timeout = 0.5;
@@ -201,9 +204,9 @@ public class HORSreplica extends LinearOpMode {
         shooterToggle = true;
         flywheel.setShooterOn(true);
 
-        double time;
+        //double time;
         while (opModeIsActive()) {
-            time = Timer.time(TimeUnit.MILLISECONDS);
+            //time = Timer.time(TimeUnit.MILLISECONDS);
 
             // Auto Launch System Check
             if (gamepad1.y || gamepad2.y) {
@@ -263,7 +266,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Intake control
-            double intakePower = 0.0;
+            double intakePower;
             if (gamepad1.left_trigger > 0.05 || gamepad1.right_trigger > 0.05) {
                 intakePower = gamepad1.left_trigger * 0.5 - gamepad1.right_trigger;
             } else {
@@ -309,7 +312,7 @@ public class HORSreplica extends LinearOpMode {
             flywheel.update();
 
             // Rumble feedback when not at speed
-            boolean atTarget = flywheel.isAtTarget();
+            //boolean atTarget = flywheel.isAtTarget();
 
             /*
             if (flywheel.isShooterOn() && !atTarget) {
