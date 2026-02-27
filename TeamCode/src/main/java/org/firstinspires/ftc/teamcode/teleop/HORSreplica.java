@@ -311,6 +311,7 @@ public class HORSreplica extends LinearOpMode {
             // Rumble feedback when not at speed
             boolean atTarget = flywheel.isAtTarget();
 
+            /*
             if (flywheel.isShooterOn() && !atTarget) {
                 gamepad1.rumble(0.5, 0.5, 100);
                 gamepad2.rumble(0.5, 0.5, 100);
@@ -320,6 +321,7 @@ public class HORSreplica extends LinearOpMode {
                 gamepad2.stopRumble();
                 wasVibratingLastLoop = false;
             }
+             */
 
             // IMU Align
             if (gamepad1.x) {
