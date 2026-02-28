@@ -135,7 +135,7 @@ public class NewRedClose extends OpMode {
     @Sorter(sort = 140)
     public static double ALIGN_SECOND3_X = 95.0;
     @Sorter(sort = 141)
-    public static double ALIGN_SECOND3_Y = 626.0;
+    public static double ALIGN_SECOND3_Y = 62.0;
     @Sorter(sort = 142)
     public static double ALIGN_SECOND3_HEADING = 0;
     @Sorter(sort = 150)

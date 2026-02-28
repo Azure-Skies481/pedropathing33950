@@ -15,36 +15,26 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelModified;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-import java.util.concurrent.TimeUnit;
-
 @TeleOp
 @Configurable
 public class HORSreplica extends LinearOpMode {
 
-    private DcMotorEx intake = null;
-    private DcMotorEx shooter = null;
-    private DcMotorEx shooter2 = null;
-    private Servo gate = null;
-    private Servo hoodservo = null;
-    private VoltageSensor voltageSensor = null;
+    private DcMotorEx intake;
+    private DcMotorEx shooter;
+    private DcMotorEx shooter2;
+    private Servo gate;
+    private Servo hoodservo;
+    private VoltageSensor voltageSensor;
 
     private double driveSpeed;
 
-
-    //@Sorter(sort = 0)
-    //public static double feedback = 0.0008; // not used anymore
-
-    private boolean shooterToggle = true;  // Start with shooter ON
+    // Toggle edge-detection flags
+    private boolean shooterToggle = true;
     private boolean shooterToggleWasPressed = false;
-
     private boolean gateOpen = false;
-    private boolean gateToggleWasPressed = false;
-
     private boolean fastMode = true;
     private boolean fastModeWasPressed = false;
-
     private boolean imuReferenceResetWasPressed = false;
-
     private boolean dpadLeftWasPressed = false;
     private boolean dpadRightWasPressed = false;
 
@@ -53,116 +43,149 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1)
-    public static int RPM_current = 3700;  // DEFAULT RPM IS 3800
+    public static int RPM_current = 3700;
 
-    private IMU imu = null;
+    private IMU imu;
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
             RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
             RevHubOrientationOnRobot.UsbFacingDirection.UP));
-    ElapsedTime Timer = new ElapsedTime();
 
-    // Shooter control object with dual motors
     private FlywheelModified flywheel;
 
-    // Rumble state check
-    //private boolean wasVibratingLastLoop = false;
+    // ========== NON-BLOCKING STATE MACHINES ==========
 
-    // IMU Align
-    /*
-    public void getImuAlignAngle() {
-        imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
+    // Launch system state machine (replaces blocking 1-second wait)
+    private enum LaunchState { IDLE, LAUNCHING }
+    private LaunchState launchState = LaunchState.IDLE;
+    private final ElapsedTime launchTimer = new ElapsedTime();
+
+    // IMU align state machine (replaces blocking while-loop)
+    private enum AlignState { IDLE, ALIGNING }
+    private AlignState alignState = AlignState.IDLE;
+    private final ElapsedTime alignTimer = new ElapsedTime();
+    private static final double ALIGN_TIMEOUT = 0.5;
+    private static final double ALIGN_P = 0.02;
+    private static final double ALIGN_TOLERANCE_DEG = 2.5;
+    private static final double ALIGN_VELOCITY_TOLERANCE = 0.3;
+
+    // Telemetry throttle — only update every N ms to cut USB overhead
+    private final ElapsedTime telemetryTimer = new ElapsedTime();
+    private static final double TELEMETRY_INTERVAL_MS = 100; // 10 Hz is plenty for humans
+
+    // Cached servo positions to avoid redundant USB writes
+    private double lastGatePosition = -1;
+    private double lastHoodPosition = -1;
+
+    // ========== HELPER: Write servo only if position changed ==========
+    private void setGatePosition(double pos) {
+        if (Math.abs(pos - lastGatePosition) > 0.005) {
+            gate.setPosition(pos);
+            lastGatePosition = pos;
+        }
     }
 
-     */
-
-    public void imuAlign() {
-        double timeout = 0.5;
-        ElapsedTime alignTimer = new ElapsedTime();
-        alignTimer.reset();
-
-        while (opModeIsActive()) {
-            double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-            double error = imuAlignAngle - imuAngle;
-            double alignPower = 0.02 * error;
-
-            frontLeftMotor.setPower(-alignPower);
-            backLeftMotor.setPower(-alignPower);
-            frontRightMotor.setPower(alignPower);
-            backRightMotor.setPower(alignPower);
-
-            double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity()
-                    + frontRightMotor.getVelocity() + backRightMotor.getVelocity()) / 4;
-
-            telemetry.addData("imu: ", imuAngle);
-            telemetry.addData("error: ", error);
-            telemetry.update();
-
-            if (Math.abs(error) <= 2.5 && Math.abs(velocity) <= 0.3) {
-                telemetry.addData("skibidi", "yes it's done yo");
-                telemetry.update();
-                break;
-            }
-            if (alignTimer.seconds() > timeout) {
-                telemetry.addData("imuAlign", "Timeout reached, aborting");
-                telemetry.update();
-                break;
-            }
-            idle();
+    private void setHoodPosition(double pos) {
+        if (Math.abs(pos - lastHoodPosition) > 0.005) {
+            hoodservo.setPosition(pos);
+            lastHoodPosition = pos;
         }
+    }
+
+    // ========== NON-BLOCKING IMU ALIGN (called each loop tick) ==========
+    private void startImuAlign() {
+        if (alignState == AlignState.IDLE) {
+            alignState = AlignState.ALIGNING;
+            alignTimer.reset();
+        }
+    }
+
+    private void updateImuAlign() {
+        if (alignState != AlignState.ALIGNING) return;
+
+        double imuAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        double error = imuAlignAngle - imuAngle;
+        double alignPower = ALIGN_P * error;
+
+        frontLeftMotor.setPower(-alignPower);
+        backLeftMotor.setPower(-alignPower);
+        frontRightMotor.setPower(alignPower);
+        backRightMotor.setPower(alignPower);
+
+        double velocity = (frontLeftMotor.getVelocity() + backLeftMotor.getVelocity()
+                + frontRightMotor.getVelocity() + backRightMotor.getVelocity()) / 4.0;
+
+        boolean settled = Math.abs(error) <= ALIGN_TOLERANCE_DEG && Math.abs(velocity) <= ALIGN_VELOCITY_TOLERANCE;
+        boolean timedOut = alignTimer.seconds() > ALIGN_TIMEOUT;
+
+        if (settled || timedOut) {
+            // Stop motors and return to normal drive
+            frontLeftMotor.setPower(0);
+            backLeftMotor.setPower(0);
+            frontRightMotor.setPower(0);
+            backRightMotor.setPower(0);
+            alignState = AlignState.IDLE;
+        }
+    }
+
+    // ========== NON-BLOCKING LAUNCH SYSTEM (called each loop tick) ==========
+    private void startLaunch() {
+        if (launchState == LaunchState.IDLE) {
+            launchState = LaunchState.LAUNCHING;
+            launchTimer.reset();
+            // Open gate + run intake
+            setGatePosition(0.3);
+            intake.setPower(-1);
+            // Stop drive motors during launch
+            frontLeftMotor.setPower(0);
+            backLeftMotor.setPower(0);
+            frontRightMotor.setPower(0);
+            backRightMotor.setPower(0);
+        }
+    }
+
+    private void updateLaunch() {
+        if (launchState != LaunchState.LAUNCHING) return;
+
+        if (launchTimer.milliseconds() >= 1000) {
+            intake.setPower(0);
+            setGatePosition(0.1);
+            launchState = LaunchState.IDLE;
+        }
+        // flywheel.update() is already called once per loop below — no need to double-call
+    }
+
+    // ========== MAIN OPMODE ==========
+    @Override
+    public void runOpMode() throws InterruptedException {
+
+        // ---------- Hardware Init ----------
+        imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(parameters);
+
+        frontLeftMotor = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        backLeftMotor  = hardwareMap.get(DcMotorEx.class, "backLeft");
+        frontRightMotor = hardwareMap.get(DcMotorEx.class, "frontRight");
+        backRightMotor  = hardwareMap.get(DcMotorEx.class, "backRight");
+
+        // Set zero-power behavior ONCE at init, not repeatedly
         frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-    }
 
-    // Launch System
-    public void launchSystem() {
-        stopMove();
-        gate.setPosition(0.3);  // Open gate
-        intake.setPower(-1);
-        Timer.reset();
-        double skibidi = Timer.time(TimeUnit.MILLISECONDS);
-        while (skibidi < 1000 && opModeIsActive()) {
-            skibidi = Timer.time(TimeUnit.MILLISECONDS);
-            flywheel.update(); // Keep updating during launch
-        }
-        intake.setPower(0);
-        gate.setPosition(0.1);  // Close gate
-    }
-
-    public void stopMove() {
-        frontLeftMotor.setVelocity(0);
-        backLeftMotor.setVelocity(0);
-        frontRightMotor.setVelocity(0);
-        backRightMotor.setVelocity(0);
-    }
-
-    @Override
-    public void runOpMode() throws InterruptedException {
-        imu = hardwareMap.get(IMU.class, "imu");
-        imu.initialize(parameters);
-
-        frontLeftMotor = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
-        backLeftMotor = (DcMotorEx) hardwareMap.dcMotor.get("backLeft");
-        frontRightMotor = (DcMotorEx) hardwareMap.dcMotor.get("frontRight");
-        backRightMotor = (DcMotorEx) hardwareMap.dcMotor.get("backRight");
-
-        // Drivetrain directions
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         intake = hardwareMap.get(DcMotorEx.class, "intakeMotor");
-        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        // Configure shooter direction - FORWARD for positive power = correct spin
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         shooter.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        // Initialize second shooter motor
         try {
             shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
-            // shooter2 spins OPPOSITE direction mechanically, so REVERSE makes it spin same effective direction
             shooter2.setDirection(DcMotorSimple.Direction.FORWARD);
             telemetry.addData("Shooter2", "Initialized ✓");
         } catch (IllegalArgumentException e) {
@@ -173,22 +196,17 @@ public class HORSreplica extends LinearOpMode {
         gate = hardwareMap.get(Servo.class, "gateServo");
         hoodservo = hardwareMap.get(Servo.class, "hoodservo");
 
-        // Get voltage sensor
         try {
             voltageSensor = hardwareMap.voltageSensor.iterator().next();
         } catch (Exception e) {
             voltageSensor = null;
         }
 
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        // Initialize FlywheelModified with both motors
         flywheel = new FlywheelModified(shooter, shooter2, telemetry, voltageSensor);
         flywheel.setTargetRPM(RPM_current);
-        flywheel.setShooterOn(false);  // Keep shooter OFF during init
+        flywheel.setShooterOn(false);
 
-        // Set gate to closed position during init
-        gate.setPosition(0.3);
+        setGatePosition(0.3);
 
         imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
 
@@ -199,49 +217,55 @@ public class HORSreplica extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
-        // Turn shooter ON at START (not during init)
+        // Turn shooter ON at start
         shooterToggle = true;
         flywheel.setShooterOn(true);
+        telemetryTimer.reset();
 
-        //double time;
+        // ==================== MAIN LOOP ====================
         while (opModeIsActive()) {
-            //time = Timer.time(TimeUnit.MILLISECONDS);
 
-            // Auto Launch System Check
-            if (gamepad1.y || gamepad2.y) {
-                launchSystem();
+            boolean isLaunching = (launchState == LaunchState.LAUNCHING);
+            boolean isAligning  = (alignState == AlignState.ALIGNING);
+
+            // --- Non-blocking launch system ---
+            if ((gamepad1.y || gamepad2.y) && !isLaunching && !isAligning) {
+                startLaunch();
             }
+            updateLaunch();
 
-            // Fast mode toggle (gamepad1 right bumper rising edge)
-            if (gamepad1.right_bumper) {
-                if (!fastModeWasPressed) {
-                    fastMode = !fastMode;
+            // --- Non-blocking IMU align ---
+            if (gamepad1.x && !isAligning && !isLaunching) {
+                startImuAlign();
+            }
+            updateImuAlign();
+
+            // --- Drive (skip if launching or aligning — those control motors) ---
+            if (!isLaunching && !isAligning) {
+
+                // Fast mode toggle
+                if (gamepad1.right_bumper) {
+                    if (!fastModeWasPressed) fastMode = !fastMode;
+                    fastModeWasPressed = true;
+                } else {
+                    fastModeWasPressed = false;
                 }
-                fastModeWasPressed = true;
-            } else {
-                fastModeWasPressed = false;
+
+                driveSpeed = fastMode ? 1.0 : 0.4;
+
+                // Squared inputs for fine control at low stick values
+                double y  = -gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y);
+                double x  =  gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x);
+                double rx =  gamepad1.right_stick_x;
+
+                double denom = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1.0);
+                frontLeftMotor.setPower(driveSpeed * (y + x + rx) / denom);
+                backLeftMotor.setPower(driveSpeed * (y - x + rx) / denom);
+                frontRightMotor.setPower(driveSpeed * (y - x - rx) / denom);
+                backRightMotor.setPower(driveSpeed * (y + x - rx) / denom);
             }
 
-            driveSpeed = fastMode ? 1.0 : 0.4;
-            //driveSpeed += gamepad1.right_trigger * (fastMode ? 0.0 : 0.6);
-
-            // --- Drive ---
-            double y = -gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y);
-            double x = gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x);
-            double rx = Math.pow(gamepad1.right_stick_x, 3.0);
-
-            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = driveSpeed * ((y + x + rx) / denominator);
-            double backLeftPower = driveSpeed * ((y - x + rx) / denominator);
-            double frontRightPower = driveSpeed * ((y - x - rx) / denominator);
-            double backRightPower = driveSpeed * ((y + x - rx) / denominator);
-
-            frontLeftMotor.setPower(frontLeftPower);
-            backLeftMotor.setPower(backLeftPower);
-            frontRightMotor.setPower(frontRightPower);
-            backRightMotor.setPower(backRightPower);
-
-            // Changing shooter power
+            // --- RPM adjustment (dpad left/right) ---
             if (gamepad1.dpad_left || gamepad2.dpad_left) {
                 if (!dpadLeftWasPressed) {
                     RPM_current = Math.max(0, RPM_current - 50);
@@ -252,11 +276,9 @@ public class HORSreplica extends LinearOpMode {
                 dpadLeftWasPressed = false;
             }
 
-
-
             if (gamepad1.dpad_right || gamepad2.dpad_right) {
                 if (!dpadRightWasPressed) {
-                    RPM_current = RPM_current + 50;
+                    RPM_current += 50;
                     flywheel.setTargetRPM(RPM_current);
                 }
                 dpadRightWasPressed = true;
@@ -264,16 +286,19 @@ public class HORSreplica extends LinearOpMode {
                 dpadRightWasPressed = false;
             }
 
-            // Intake control
+            // --- Intake (no change to logic, just cleaner) ---
             double intakePower;
             if (gamepad1.left_trigger > 0.05 || gamepad1.right_trigger > 0.05) {
                 intakePower = gamepad1.left_trigger * 0.5 - gamepad1.right_trigger;
             } else {
-                intakePower = gamepad2.left_trigger * 0.5 - gamepad2.right_trigger * 1;
+                intakePower = gamepad2.left_trigger * 0.5 - gamepad2.right_trigger;
             }
-            intake.setPower(intakePower);
+            // Only set during launch if launch isn't controlling intake
+            if (!isLaunching) {
+                intake.setPower(intakePower);
+            }
 
-            // Toggle shooter on/off
+            // --- Shooter toggle ---
             if (gamepad1.dpad_down || gamepad2.dpad_down) {
                 if (!shooterToggleWasPressed) {
                     shooterToggle = !shooterToggle;
@@ -284,20 +309,7 @@ public class HORSreplica extends LinearOpMode {
                 shooterToggleWasPressed = false;
             }
 
-            // Gate toggle
-            /*
-            if (gamepad1.b || gamepad2.b) {
-                if (!gateToggleWasPressed) {
-                    gateOpen = !gateOpen;
-                }
-                gateToggleWasPressed = true;
-            } else {
-                gateToggleWasPressed = false;
-            }
-
-             */
-
-            // Reset IMU reference point
+            // --- IMU reference reset ---
             if (gamepad1.a || gamepad2.a) {
                 if (!imuReferenceResetWasPressed) {
                     imuAlignAngle = imu.getRobotYawPitchRollAngles().getYaw();
@@ -307,60 +319,36 @@ public class HORSreplica extends LinearOpMode {
                 imuReferenceResetWasPressed = false;
             }
 
-            // Gate position logic
-            //gate.setPosition((gamepad1.b || gamepad2.b) ? 0.3 : 0.1);
-
-            // Update PIDF controller
-            flywheel.update();
-
-            // Rumble feedback when not at speed
-            //boolean atTarget = flywheel.isAtTarget();
-
-            /*
-            if (flywheel.isShooterOn() && !atTarget) {
-                gamepad1.rumble(0.5, 0.5, 100);
-                gamepad2.rumble(0.5, 0.5, 100);
-                wasVibratingLastLoop = true;
-            } else if (wasVibratingLastLoop) {
-                gamepad1.stopRumble();
-                gamepad2.stopRumble();
-                wasVibratingLastLoop = false;
-            }
-             */
-
-            // IMU Align
-            if (gamepad1.x) {
-                imuAlign();
-            }
-
-            // Hood Servo
+            // --- Hood presets (only write servo if position actually changes) ---
             if (gamepad2.dpad_up) {
-                hoodservo.setPosition(0.28);
+                setHoodPosition(0.28);
                 flywheel.setTargetRPM(4450);
             }
-
             if (gamepad2.right_bumper) {
-                hoodservo.setPosition(0.5);
+                setHoodPosition(0.5);
                 flywheel.setTargetRPM(3800);
             }
-
             if (gamepad2.left_bumper) {
-                hoodservo.setPosition(0.5);
+                setHoodPosition(0.5);
                 flywheel.setTargetRPM(3200);
             }
 
-            // Telemetry
-            telemetry.addData("Shooter RPM", "%.0f", flywheel.getCurrentRPM());
-            telemetry.addData("Target RPM", "%.0f", flywheel.getTargetRPM());
-            telemetry.addData("Power", "%.2f", flywheel.getLastAppliedPower());
-            telemetry.addData("At Speed", flywheel.isAtTarget() ? "✓" : "✗");
-            telemetry.addData("Gate Open", gateOpen);
-            telemetry.addData("Shooter On", flywheel.isShooterOn());
-            telemetry.addData("Intake Power", "%.2f", intakePower);
-            telemetry.addData("Fast Mode", fastMode);
-            telemetry.addData("Dual Motors", flywheel.isDualMotor() ? "YES" : "NO");
-            telemetry.addData("Reference Heading", "%.1f°", Math.toDegrees(imuAlignAngle));
-            telemetry.update();
+            // --- Flywheel PIDF update (exactly ONCE per loop) ---
+            flywheel.update();
+
+            // --- Throttled telemetry (10 Hz instead of ~50+ Hz) ---
+            if (telemetryTimer.milliseconds() >= TELEMETRY_INTERVAL_MS) {
+                telemetryTimer.reset();
+                telemetry.addData("Shooter RPM", "%.0f", flywheel.getCurrentRPM());
+                telemetry.addData("Target RPM", "%.0f", flywheel.getTargetRPM());
+                telemetry.addData("Power", "%.2f", flywheel.getLastAppliedPower());
+                telemetry.addData("At Speed", flywheel.isAtTarget() ? "✓" : "✗");
+                telemetry.addData("Shooter On", flywheel.isShooterOn());
+                telemetry.addData("Fast Mode", fastMode);
+                telemetry.addData("Launch", launchState);
+                telemetry.addData("Align", alignState);
+                telemetry.update();
+            }
         }
     }
 }

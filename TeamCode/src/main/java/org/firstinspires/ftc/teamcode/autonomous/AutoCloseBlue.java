@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.autonomous;
 
 
 
-import static org.firstinspires.ftc.teamcode.teleop.MecanumTeleop.feedback;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.teleop.ShootingHelp;
