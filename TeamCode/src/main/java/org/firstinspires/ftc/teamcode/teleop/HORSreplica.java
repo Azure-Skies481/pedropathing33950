@@ -53,7 +53,7 @@ public class HORSreplica extends LinearOpMode {
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
 
     @Sorter(sort = 1)
-    public static int power = 3700;  // DEFAULT RPM IS 3800
+    public static int RPM_current = 3700;  // DEFAULT RPM IS 3800
 
     private IMU imu = null;
     private final IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
@@ -184,7 +184,7 @@ public class HORSreplica extends LinearOpMode {
 
         // Initialize FlywheelModified with both motors
         flywheel = new FlywheelModified(shooter, shooter2, telemetry, voltageSensor);
-        flywheel.setTargetRPM(power);
+        flywheel.setTargetRPM(RPM_current);
         flywheel.setShooterOn(false);  // Keep shooter OFF during init
 
         // Set gate to closed position during init
@@ -244,8 +244,8 @@ public class HORSreplica extends LinearOpMode {
             // Changing shooter power
             if (gamepad1.dpad_left || gamepad2.dpad_left) {
                 if (!dpadLeftWasPressed) {
-                    power = Math.max(0, power - 50);
-                    flywheel.setTargetRPM(power);
+                    RPM_current = Math.max(0, RPM_current - 50);
+                    flywheel.setTargetRPM(RPM_current);
                 }
                 dpadLeftWasPressed = true;
             } else {
@@ -256,8 +256,8 @@ public class HORSreplica extends LinearOpMode {
 
             if (gamepad1.dpad_right || gamepad2.dpad_right) {
                 if (!dpadRightWasPressed) {
-                    power = power + 50;
-                    flywheel.setTargetRPM(power);
+                    RPM_current = RPM_current + 50;
+                    flywheel.setTargetRPM(RPM_current);
                 }
                 dpadRightWasPressed = true;
             } else {
