@@ -127,7 +127,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 115)
     public static double SHOOT_FINAL_HEADING = 135;
     @Sorter(sort = 120)
-    public static double COLLECT_FIRST3_X = 25.0;
+    public static double COLLECT_FIRST3_X = 27.0;
     @Sorter(sort = 121)
     public static double COLLECT_FIRST3_Y = 90.0;
     @Sorter(sort = 122)
@@ -139,7 +139,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 142)
     public static double ALIGN_SECOND3_HEADING = -175.0;
     @Sorter(sort = 150)
-    public static double COLLECT_SECOND3_X = 15.0;
+    public static double COLLECT_SECOND3_X = 12.5;
     @Sorter(sort = 151)
     public static double COLLECT_SECOND3_Y = 65.5;
     @Sorter(sort = 152)
@@ -151,7 +151,7 @@ public class HORSreplicaBlueClose extends OpMode {
     @Sorter(sort = 162)
     public static double ALIGN_THIRD3_HEADING = -180.0;
     @Sorter(sort = 170)
-    public static double COLLECT_THIRD3_X = 15.0;
+    public static double COLLECT_THIRD3_X = 12.5;
     @Sorter(sort = 171)
     public static double COLLECT_THIRD3_Y = 41.8;
     @Sorter(sort = 172)

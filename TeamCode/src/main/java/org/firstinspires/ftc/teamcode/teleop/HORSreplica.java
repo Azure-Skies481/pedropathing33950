@@ -308,7 +308,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate position logic
-            gate.setPosition((gamepad1.b || gamepad2.b) ? 0.3 : 0.1);
+            //gate.setPosition((gamepad1.b || gamepad2.b) ? 0.3 : 0.1);
 
             // Update PIDF controller
             flywheel.update();
