@@ -168,20 +168,17 @@ public class AutoFarBlue extends LinearOpMode {
 
         ElapsedTime timer = new ElapsedTime();
         moveForwardTime(150);
-        turn(22);
+        turn(18.5);
         while (opModeIsActive()){
             time = timer.time(TimeUnit.MILLISECONDS);
-            shooter.setVelocity(shootingHelp.getPID(shooter, 2300));
-            shooter2.setPower(shooter.getPower());
-            telemetry.addData("current speed", shooter.getVelocity());
-            if (Math.abs(5000-time)<=50) {
+            shooter.setPower(shootingHelp.getPID(shooter, 1600));
+            if (Math.abs(5500-time)<=100) {
                 gate.setPosition(0.3);
                 intake.setPower(-1);
             }
             if (Math.abs(12000 - time) <= 50){
                 intake.setPower(0);
                 shooter.setPower(0);
-                shooter2.setPower(0);
                 break;
             }
         }
