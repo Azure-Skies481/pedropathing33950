@@ -118,7 +118,7 @@ public class HORSreplica extends LinearOpMode {
     // Launch System
     public void launchSystem() {
         stopMove();
-        gate.setPosition(0.1);  // Open gate
+        gate.setPosition(0.3);  // Open gate
         intake.setPower(-1);
         Timer.reset();
         double skibidi = Timer.time(TimeUnit.MILLISECONDS);
@@ -223,7 +223,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             driveSpeed = fastMode ? 1.0 : 0.4;
-            driveSpeed += gamepad1.right_trigger * (fastMode ? 0.0 : 0.6);
+            //driveSpeed += gamepad1.right_trigger * (fastMode ? 0.0 : 0.6);
 
             // --- Drive ---
             double y = -gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y);
@@ -308,7 +308,7 @@ public class HORSreplica extends LinearOpMode {
             }
 
             // Gate position logic
-            gate.setPosition((gamepad1.b || gamepad2.b) ? 0.1 : 0.3);
+            gate.setPosition((gamepad1.b || gamepad2.b) ? 0.3 : 0.1);
 
             // Update PIDF controller
             flywheel.update();
